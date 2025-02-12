@@ -1,6 +1,4 @@
- 
--- {{{ Globals
-
+-- Globals
 vim.g.gitblame_enabled = 0
 vim.g.gui_font_face = 'UbuntuMono Nerd Font Mono - Bold'
 vim.g.gui_font_size = 12
@@ -12,9 +10,7 @@ vim.g.minimap_width = 2
 vim.g.python_host_program = '/usr/bin/python'
 vim.g.slime_target = 'neovim'
 
--- }}} Globals
-
--- {{{ Opts
+-- Opts
 vim.opt.backspace = { 'eol', 'start', 'indent' }
 vim.opt.backup = false
 vim.opt.belloff = 'all'
@@ -27,6 +23,7 @@ vim.opt.conceallevel = 0
 vim.opt.cursorline = true
 vim.opt.expandtab = true
 vim.opt.fileencoding = 'utf-8'
+-- vim.opt.fillchars = { horiz = '━', horizup = '┻', horizdown = '┳', vert = '┃', vertleft = '┫', vertright = '┣', verthoriz = '╋', }
 vim.opt.fillchars = { horiz = '━', horizup = '┻', horizdown = '┳', vert = '┃', vertleft = '┫', vertright = '┣', verthoriz = '╋', }
 vim.opt.foldmethod = 'marker'
 vim.opt.formatoptions:append 'rn1'
@@ -63,20 +60,14 @@ vim.opt.undofile = true
 vim.opt.updatetime = 300
 vim.opt.wildignore = { '*.o', '*~', '*.pyc', '*pycache*' }
 vim.opt.wrap = false
--- }}} Opts
 
--- {{{ Misc
-
+-- Misc options
 vim.wildmode = { 'full', 'longest', 'lastused' }
 vim.wildoptions = 'pum'
-
 vim.wo.number = true
 vim.wo.signcolumn = 'yes'
-
 vim.g['gtest#gtest_command'] = './build/tests/tests'
 vim.g['test#cpp#runner'] = 'ctest'
 vim.g['test#cpp#catch2#bin_dir'] = '../build/tests/'
-
--- }}} Misc
 
 vim.o.statusline = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'

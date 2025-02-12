@@ -1,3 +1,4 @@
+-- Neovim plugins (managed by lazy)
 
 require("lazy").setup({
   spec = { 

@@ -1,4 +1,3 @@
-
 local function mymap(mode, key, value)
   vim.keymap.set(mode, key, value, { silent = true, remap = true })
 end
@@ -9,7 +8,6 @@ mymap('n', '<A-Tab>', '<CMD>bn<CR>')
 mymap('n', '<A-S-Tab>', '<CMD>bp<CR>')
 mymap('n', '<A-x>', '<CMD>Telescope commands<CR>')
 mymap('n', '<Space>oc', '<CMD>OpenConfig<CR>')
-mymap('n', '<Space><Space>', '<CMD>Telescope make<CR>')
 mymap('n', '<Space>bb', '<CMD>Telescope buffers<CR>')
 mymap('n', '<Space>bn', '<CMD>bn<CR>')
 mymap('n', '<Space>bp', '<CMD>bp<CR>')
@@ -90,9 +88,10 @@ mymap('n', '<A-7>', ':tabn7<CR>')
 mymap('n', '<A-8>', ':tabn8<CR>')
 mymap('n', '<A-9>', ':tabn9<CR>')
 
-
 mymap('n', '<Space>qq', '<CMD>wa<CR><CMD>qa!<CR>')
 mymap('n', '<Space>rr', '<CMD>luafile $MYVIMRC<CR><CMD>ReloadFTPlugins<CR><CMD>echo "Reloaded config"<CR>')
 mymap('n', '<Space>tgc', '<CMD>Telescope git_commits<CR>')
 
 mymap('n', '<Space>ff', '<CMD>Neotree toggle<CR>')
+
+-- mymap('n', '<Space><Space>', '<CMD>Telescope make<CR>')
