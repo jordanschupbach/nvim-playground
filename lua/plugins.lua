@@ -210,8 +210,34 @@ require('incline').setup {
       },
       opts_extend = { "sources.default" },
       preset = {}
-    }
+    },
     -- }}} blink.cmp
+
+    -- {{{ Neogit
+    {
+      "NeogitOrg/neogit",
+      dependencies = {
+        "nvim-lua/plenary.nvim",         -- required
+        "sindrets/diffview.nvim",        -- optional - Diff integration
+        -- Only one of these is needed.
+        "nvim-telescope/telescope.nvim", -- optional
+        -- "ibhagwan/fzf-lua",              -- optional
+        -- "echasnovski/mini.pick",         -- optional
+      },
+      config = function()
+
+        local function mymap(mode, key, value)
+          vim.keymap.set(mode, key, value, { silent = true, remap = true })
+        end
+
+        local neogit = require('neogit')
+        neogit.setup {}
+
+        mymap('n', '<Space>gg', '<CMD>Neogit kind=floating<CR>')
+      end,
+
+    },
+    -- }}} Neogit
 
   },
 
