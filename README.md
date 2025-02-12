@@ -1,0 +1,3 @@
+# Simple neovim playground
+
+
