@@ -1,5 +1,6 @@
 -- # Simple neovim playground
 
+-- My LLM:
 -- I would like to use neovim as a playground for learning new languages and
 -- technologies. I will be using this repository to keep track of my progress and
 -- to share my configurations and plugins.
@@ -263,19 +264,31 @@ vim.opt.rtp:prepend(lazypath)
 ---@diagnostic disable: missing-fields
 require("lazy").setup({
   spec = {
-    -- optional
+
+		-- {{{ fzf
     {'junegunn/fzf', build = function()
-        vim.fn['fzf#install']()
+        vim.fn['fzf#install']() -- TODO: fixme
     end
     },
+		-- }}} fzf
+
+		-- {{{ smart-splits
     { 'mrjones2014/smart-splits.nvim' },
+		-- }}} smart-splits
 
+		-- {{{ Project.nvim
     { 'ahmedkhalf/project.nvim', },
+		-- }}} Project.nvim
 
+		-- {{{ Copilot.vim
     { 'github/copilot.vim', },
+		-- }}} Copilot.vim
 
+		-- {{{ friently-snippets
     { "rafamadriz/friendly-snippets" },
+		-- }}} friently-snippets
 
+		-- {{{ nvim-bqf
 		{
 			'kevinhwang91/nvim-bqf',
 			config = function()
@@ -342,9 +355,9 @@ require("lazy").setup({
 				})
 			end,
 		},
+		-- }}} nvim-bqf
 
     -- {{{ Highlight colors
-
 		{
 			'brenoprata10/nvim-highlight-colors',
 			config = function()
@@ -371,7 +384,6 @@ require("lazy").setup({
     -- }}} Highlight colors
 
     -- {{{ Luasnip
-
 		{
 			"L3MON4D3/LuaSnip",
 			lazy = false,
@@ -1019,6 +1031,7 @@ require("lazy").setup({
 				},
 			},
 		},
+
     -- }}} Trouble
 
     -- -- {{{ Ultisnips
@@ -1039,6 +1052,7 @@ require("lazy").setup({
 			end,
 			keys = { { '<A-Return>', '<CMD>SlimeSendCurrentLine<CR>', desc = 'Send to REPL' } },
 		},
+
     -- }}} nvim-slime
 
     -- {{{ Which-key
@@ -1070,7 +1084,9 @@ require("lazy").setup({
 			end,
 		},
     -- }}} Which-key
-  },
+
+	},
+
   install = { colorscheme = { "habamax" } },
   checker = { enabled = true },
 
@@ -1122,6 +1138,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- }}} Javascript
 
 -- }}} Filetype configs
+
 
 ---@diagnostic disable-next-line: unused-local
 local playround = require'playground'
