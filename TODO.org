@@ -1,0 +1,11 @@
+#+OPTIONS: toc:nil
+
+* TODO [#C] clean up dead code :AGENDA:NVIM:
+	DEADLINE: <2025-03-02 Sat 12:00>
+
+* TODO [#C] Figure out project-level TODO files :AGENDA:NVIM:
+	DEADLINE: <2025-03-02 Sat 12:00>
+	*Important* This should be integrated with org-agenda
+
+
+

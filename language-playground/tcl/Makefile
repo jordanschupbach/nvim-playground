@@ -1,0 +1,3 @@
+default:
+	tclsh test.tcl
+

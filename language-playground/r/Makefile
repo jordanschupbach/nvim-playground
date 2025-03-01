@@ -1,0 +1,2 @@
+all:
+	Rscript test.r

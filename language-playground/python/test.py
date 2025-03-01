@@ -1,8 +1,13 @@
 import numpy as np
-import torch
+# import torch
 
-np.random.seed(0)
+# np.random.seed(0)
 
 if __name__ == "__main__": 
-  print("Hello World!")
+  print("")
+  print("10 random numbers:")
+  print(np.random.random(10))
+  print("")
+  print("Hellozzz World!")
+  print("")
 

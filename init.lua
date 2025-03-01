@@ -1,10 +1,5 @@
 -- # Simple neovim playground
 
--- My LLM:
--- I would like to use neovim as a playground for learning new languages and
--- technologies. I will be using this repository to keep track of my progress and
--- to share my configurations and plugins.
-
 -- {{{ Initial Options
 
 vim.opt.foldmethod = 'marker'
@@ -16,7 +11,45 @@ vim.opt.foldmethod = 'marker'
 local function mymap(mode, key, value)
   vim.keymap.set(mode, key, value, { silent = true, remap = true })
 end
-mymap('n', '<Space>mm', '<CMD>make<CR>')
+
+
+local function toggle_quickfix()
+    if vim.fn.empty(vim.fn.getqflist()) == 1 then
+        print("Quickfix list is empty!")
+        return
+    end
+
+    local quickfix_open = false
+    local windows = vim.api.nvim_list_wins()
+
+    -- Check if any window is a quickfix window
+    for _, win in ipairs(windows) do
+        local wininfo = vim.fn.getwininfo(win)[1]
+        if wininfo.loclist == 0 and wininfo.quickfix == 1 then
+            quickfix_open = true
+            break
+        end
+    end
+
+    if quickfix_open then
+        vim.cmd("cclose")
+    else
+        vim.cmd("copen")
+    end
+end
+
+vim.api.nvim_create_user_command('CToggle', toggle_quickfix, {})
+
+
+
+mymap('n', '<Space>cc', '<CMD>CToggle<CR>')
+mymap('n', '<Space>co', '<CMD>CToggle<CR>')
+
+mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+-- NOTE: move these two below to asyncrun plugin mapping
+mymap('n', '<A-S-Return>', '<CMD>AsyncRun make<CR>')
+mymap('n', '<Space><Return>', '<CMD>AsyncRun make<CR>')
+mymap('n', '<Space>mm', '<CMD>silent make<CR>')
 mymap('n', ']e', '<CMD>lua vim.diagnostic.goto_next()<CR>')
 mymap('n', '<Space>ht', '<CMD>Tutor<CR>')
 mymap('n', '<A-Tab>', '<CMD>bn<CR>')
@@ -93,6 +126,11 @@ mymap('n', '<A-9>', ':tabn9<CR>')
 mymap('n', '<Space>qq', '<CMD>wa<CR><CMD>qa!<CR>')
 mymap('n', '<Space>rr', '<CMD>luafile $MYVIMRC<CR><CMD>ReloadFTPlugins<CR><CMD>echo "Reloaded config"<CR>')
 mymap('n', '<Space>tgc', '<CMD>Telescope git_commits<CR>')
+
+mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
+mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
+
+
 -- }}} Base Key mappings
 
 -- {{{ General Options
@@ -123,7 +161,7 @@ function UpdateAll()
 		end
 	end
 end
--- Autocommand to refresh status lines and separators on resize 
+-- Autocommand to refresh status lines and separators on resize
 vim.api.nvim_create_autocmd("VimResized", { callback = UpdateAll })
 
 -- Autocommand to update status lines and separators on window focus changes
@@ -141,14 +179,15 @@ vim.cmd('highlight EndOfBuffer guifg=#881188')  -- Customize color as needed
 vim.opt.shiftwidth = 2
 vim.opt.showtabline = 2
 vim.opt.tabstop = 2
+vim.opt.clipboard = 'unnamedplus'
+vim.g.slime_target = 'neovim'
+vim.g.mapleader = " "
+vim.g.maplocalleader = ";"
 
 -- {{{ Unmerged options
 -- -- Leader keys
--- vim.g.mapleader = " "
--- vim.g.maplocalleader = ";"
--- 
+--
 -- -- Globals
--- vim.g.gitblame_enabled = 0
 -- vim.g.gui_font_face = 'UbuntuMono Nerd Font Mono - Bold'
 -- vim.g.gui_font_size = 12
 -- vim.g.mapleader = " "
@@ -157,14 +196,12 @@ vim.opt.tabstop = 2
 -- vim.g.minimap_auto_start_win_enter = 1
 -- vim.g.minimap_width = 2
 -- vim.g.python_host_program = '/usr/bin/python'
--- vim.g.slime_target = 'neovim'
--- 
+--
 -- -- Opts
 -- vim.opt.backspace = { 'eol', 'start', 'indent' }
 -- vim.opt.backup = false
 -- vim.opt.belloff = 'all'
 -- vim.opt.breakindent = true
--- vim.opt.clipboard = 'unnamedplus'
 -- vim.opt.cmdheight = 2
 -- vim.opt.colorcolumn = '120'
 -- vim.opt.completeopt = { 'menuone', 'noselect' }
@@ -206,7 +243,7 @@ vim.opt.number = true
 -- vim.opt.updatetime = 300
 -- vim.opt.wildignore = { '*.o', '*~', '*.pyc', '*pycache*' }
 -- vim.opt.wrap = false
--- 
+--
 -- -- Misc options
 -- vim.wildmode = { 'full', 'longest', 'lastused' }
 -- vim.wildoptions = 'pum'
@@ -215,11 +252,11 @@ vim.opt.number = true
 -- vim.g['gtest#gtest_command'] = './build/tests/tests'
 -- vim.g['test#cpp#runner'] = 'ctest'
 -- vim.g['test#cpp#catch2#bin_dir'] = '../build/tests/'
--- 
--- 
+--
+--
 -- -- vim.o.fillchars = '!'
 -- -- vim.opt.fillchars = { eob = '' }  -- No character for end of buffer
--- 
+--
 -- -- vim.o.fillchars = "~"  -- Set end of buffer character to a space
 -- }}} Unmerged options
 
@@ -257,6 +294,67 @@ vim.opt.rtp:prepend(lazypath)
 
 -- }}} Lazy.nvim bootrap script
 
+-- {{{ mycolors
+---@class PaletteColors
+local mycolors = {
+
+  -- Whites
+  pastelSnow = '#fff7f7', -- #fff7f7 Pantone 182C
+
+  -- Reds
+  trackAndField = '#d71010', -- Pantone 186C
+
+  -- Greens
+  pastelOliveCreed = '#e5edc4', -- #e5edc4 Pantone 2309C
+  energos = '#cded49', -- #cded49 Pantone 380C
+  jazzercise = '#bde225', --#bde225 Pantone 2290C
+  indiaGreen = '#1c890a', -- Pantone 2424C
+  appleIiLime = '#28d10c', -- Pantone
+
+  -- Greys
+  pigIron = '#484747',
+
+  -- Blacks
+  midnightBlack = '#000000', -- Pantone Black 3c
+  underworld = '#1f211c', -- Pantone Black 3c
+  velvetBlack = '#1d1818', -- Pantone Neutral Black C
+
+  -- Yellows
+  sizzlingSunrise = '#fedb00', -- Pantone 108C
+
+  -- Blues
+  pastelFirstSnow = '#e2ebf7', -- #e2ebf7 Pantone 2707C
+  vibrantMint = '#02fce3',
+  bluePartyParrot = '#7b7eff', -- Pantone 292C
+  palatinateBlue = '#3845df', -- Pantone 2727C
+
+  -- Oranges
+  lightSalmon = '#ffa47b', -- #ffa47b Pantone 7410C
+  phillipineOrange = '#ff7300',
+
+  -- Browns
+  moussaka = '#6f3014', -- Pantone 732C
+  donJuan = '#594e4e', -- Pantone 411C
+  matterhorn = '#574e4e', -- Pantone 411C
+  chinotto = '#564949', -- Pantone 438C
+  rhodoniteBrown = '#4c4141', -- Pantone 438C
+  smokedBlackCoffee = '#3e3333', -- Pantone 439C
+  chocolatePlum = '#3c2e2e', -- #3c2e2e Pantone 440C
+
+  -- Pinks
+  munchOnMelon = '#f23f72', -- Pantone 191C
+  crumblyLipstick = '#ef6abf', -- Pantone 224C
+
+  -- Purples
+  plasmaTrail = '#cd95fa', -- Pantone 2717 C
+  crashPink = '#cd88fd', -- #cd88fd Pantone 2717C
+  piscesVividAmethyst = '#a753ec', -- Pantone 265C
+  veronica = '#9715ff', -- Pantone 2592C
+  eineKleineNachtmusik = '#4f1f91', -- Pantone 267C
+  middleRedPurple = '#230839', -- Pantone 2627 C
+}
+-- }}} mycolors
+
 -- {{{ Plugins
 
 --ultisnips ultisnips source =  Neovim plugins (managed by lazy)
@@ -265,32 +363,2030 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
   spec = {
 
-		-- {{{ fzf
-    {'junegunn/fzf', build = function()
-        vim.fn['fzf#install']() -- TODO: fixme
+		-- -- My dashboard
+		--  { dir = '/home/jordan/.config/nvim-playground/plugins/mep-dash.nvim/',
+		--  event = 'VimEnter',
+		-- opts = {
+		-- 	{a = "asdf",
+		-- 	 b = {"c", 2}}
+		--  },
+		-- },
+
+
+-- {
+--     dir = '/home/jordan/.config/nvim-playground/plugins/mep-menu.nvim/',
+--     event = 'VimEnter',
+--     opts = {
+--         buttons = {
+--             {text = "Button 1", action = function() print("Hello") end},
+--             {text = "Button 2", action = function() print("Goodbye") end},
+--         },
+--     },
+-- },
+
+
+
+{
+    "f-person/git-blame.nvim",
+    event = "VeryLazy",
+		config = function()
+			vim.g.gitblame_enabled = 0
+			require'gitblame'.setup({
+        -- your configuration comes here
+        -- for example
+        enabled = true,  -- if you want to enable the plugin
+        message_template = " <summary> • <date> • <author> • <<sha>>", -- template for the blame message, check the Message template section for more options
+        date_format = "%m-%d-%Y %H:%M:%S", -- template for the date, check Date format section for more options
+        virtual_text_column = 1,  -- virtual text start column, check Start virtual text at column section for more options
+    })
+		end
+},
+
+
+  {
+    'linrongbin16/lsp-progress.nvim',
+    config = function()
+      require('lsp-progress').setup()
     end
-    },
-		-- }}} fzf
+  },
+
+{
+  'nvim-orgmode/orgmode',
+  event = 'VeryLazy',
+  ft = { 'org' },
+  config = function()
+    -- Setup orgmode
+    require('orgmode').setup({
+      org_agenda_files = {
+				'~/orgfiles/**/*',
+				'~/dev/**/*',
+				'~/.config/nvim-playground/*',
+			},
+      org_default_notes_file = '~/orgfiles/refile.org',
+    })
+
+    -- NOTE: If you are using nvim-treesitter with ~ensure_installed = "all"~ option
+    -- add ~org~ to ignore_install
+    -- require('nvim-treesitter.configs').setup({
+    --   ensure_installed = 'all',
+    --   ignore_install = { 'org' },
+    -- })
+  end,
+},
+
+
+
+
+
+
+-- {{{ Heirline
+{
+  'rebelot/heirline.nvim',
+  -- You can optionally lazy-load heirline on UiEnter to make sure all required
+  -- plugins and colorschemes are loaded before setup
+  event = 'UiEnter',
+  dependencies = {
+    'glepnir/lspsaga.nvim',
+    -- 'SmiteshP/nvim-navic',
+    'nvim-tree/nvim-web-devicons',
+    'lewis6991/gitsigns.nvim',
+  },
+  config = function()
+    local conditions = require 'heirline.conditions'
+    local utils = require 'heirline.utils'
+
+    -- {{{ Colors
+    local colors = {
+
+      -- pylogo_bg = utils.get_highlight("PyLogo").bg,
+      -- pylogo_fg = utils.get_highlight("PyLogo").fg,
+
+      js_logo_bg = utils.get_highlight('JSLogo').bg,
+      js_logo_fg = utils.get_highlight('JSLogo').fg,
+
+      pylogo_bg = utils.get_highlight('PyLogo').bg,
+      pylogo_fg = utils.get_highlight('PyLogo').fg,
+      shell_logo_bg = utils.get_highlight('ShellLogo').bg,
+      shell_logo_fg = utils.get_highlight('ShellLogo').fg,
+      -- bright_bg = utils.get_highlight("Folded").bg,
+      button_bg = utils.get_highlight('Folded').bg,
+      lightdark_fg = utils.get_highlight('Normal').fg,
+      lightdark_bg = utils.get_highlight('StatusLine').bg,
+      statusline_bg = utils.get_highlight('StatusLine').bg,
+      -- bright_fg = utils.get_highlight("Folded").fg,
+      -- button_bg = utils.get_highlight("TabLineSel").fg,
+      bright_bg = utils.get_highlight('NonText').fg,
+      bright_fg = utils.get_highlight('NonText').fg,
+      red = utils.get_highlight('DiagnosticError').fg,
+      dark_red = utils.get_highlight('DiffDelete').bg,
+      green = utils.get_highlight('String').fg,
+      blue = utils.get_highlight('Function').fg,
+      gray = utils.get_highlight('NonText').fg,
+      orange = utils.get_highlight('Constant').fg,
+      purple = utils.get_highlight('Statement').fg,
+      cyan = utils.get_highlight('Special').fg,
+      diag_warn = utils.get_highlight('DiagnosticWarn').fg,
+      diag_error = utils.get_highlight('DiagnosticError').fg,
+      diag_hint = utils.get_highlight('DiagnosticHint').fg,
+      diag_info = utils.get_highlight('DiagnosticInfo').fg,
+      git_del = utils.get_highlight('diffDeleted').fg,
+      git_add = utils.get_highlight('diffAdded').fg,
+      git_change = utils.get_highlight('diffChanged').fg,
+    }
+
+    local function setup_colors()
+      return {
+        -- bright_bg = utils.get_highlight("Folded").bg,
+        -- bright_fg = utils.get_highlight("Folded").fg,
+        bright_bg = utils.get_highlight('NonText').fg,
+        bright_fg = utils.get_highlight('NonText').fg,
+        red = utils.get_highlight('DiagnosticError').fg,
+        dark_red = utils.get_highlight('DiffDelete').bg,
+        green = utils.get_highlight('String').fg,
+        blue = utils.get_highlight('Function').fg,
+        gray = utils.get_highlight('NonText').fg,
+        orange = utils.get_highlight('Constant').fg,
+        purple = utils.get_highlight('Statement').fg,
+        cyan = utils.get_highlight('Special').fg,
+        diag_warn = utils.get_highlight('DiagnosticWarn').fg,
+        diag_error = utils.get_highlight('DiagnosticError').fg,
+        diag_hint = utils.get_highlight('DiagnosticHint').fg,
+        diag_info = utils.get_highlight('DiagnosticInfo').fg,
+        git_del = utils.get_highlight('diffDeleted').fg,
+        git_add = utils.get_highlight('diffAdded').fg,
+        git_change = utils.get_highlight('diffChanged').fg,
+      }
+    end
+
+    -- }}} Colors
+
+    -- {{{ Autos
+    vim.api.nvim_create_augroup('Heirline', { clear = true })
+    vim.api.nvim_create_autocmd('ColorScheme', {
+      callback = function()
+        utils.on_colorscheme(setup_colors)
+      end,
+      group = 'Heirline',
+    })
+    -- }}} Autos
+
+    --- {{{ Components
+
+    -- {{{ Bufferline
+
+    -- local TablineBufnr = {
+    --   provider = function(self)
+    --     return tostring(self.bufnr) .. ". "
+    --   end,
+    --   hl = "Comment",
+    -- }
+
+    -- -- -- we redefine the filename component, as we probably only want the tail and not the relative path
+    -- local TablineFileName = {
+    --   provider = function(self)
+    --     -- self.filename will be defined later, just keep looking at the example!
+    --     local filename = self.filename
+    --     filename = filename == "" and "[No Name]" or vim.fn.fnamemodify(filename, ":t")
+    --     return filename
+    --   end,
+    --   hl = function(self)
+    --     return { bold = self.is_active or self.is_visible, italic = true }
+    --   end,
+    -- }
+
+    -- -- this looks exactly like the FileFlags component that we saw in
+    -- -- #crash-course-part-ii-filename-and-friends, but we are indexing the bufnr explicitly
+    -- -- also, we are adding a nice icon for terminal buffers.
+    -- local TablineFileFlags = {
+    --   {
+    --     condition = function(self)
+    --       return vim.api.nvim_buf_get_option(self.bufnr, "modified")
+    --     end,
+    --     provider = "[+]",
+    --     hl = { fg = "green" },
+    --   },
+    --   {
+    --     condition = function(self)
+    --       return not vim.api.nvim_buf_get_option(self.bufnr, "modifiable")
+    --           or vim.api.nvim_buf_get_option(self.bufnr, "readonly")
+    --     end,
+    --     provider = function(self)
+    --       if vim.api.nvim_buf_get_option(self.bufnr, "buftype") == "terminal" then
+    --         return "  "
+    --       else
+    --         return ""
+    --       end
+    --     end,
+    --     hl = { fg = "orange" },
+    --   },
+    -- }
+
+    -- Here the filename block finally comes together
+    -- local TablineFileNameBlock = {
+    --   init = function(self)
+    --     self.filename = vim.api.nvim_buf_get_name(self.bufnr)
+    --   end,
+    --   hl = function(self)
+    --     if self.is_active then
+    --       return "TabLineSel"
+    --       -- why not?
+    --       -- elseif not vim.api.nvim_buf_is_loaded(self.bufnr) then
+    --       --     return { fg = "gray" }
+    --     else
+    --       return "TabLine"
+    --     end
+    --   end,
+    --   on_click = {
+    --     callback = function(_, minwid, _, button)
+    --       if button == "m" then     -- close on mouse middle click
+    --         vim.schedule(function()
+    --           vim.api.nvim_buf_delete(minwid, { force = false })
+    --         end)
+    --       else
+    --         vim.api.nvim_win_set_buf(0, minwid)
+    --       end
+    --     end,
+    --     minwid = function(self)
+    --       return self.bufnr
+    --     end,
+    --     name = "heirline_tabline_buffer_callback",
+    --   },
+    --   TablineBufnr,
+    --   FileIcon, -- turns out the version defined in #crash-course-part-ii-filename-and-friends can be reutilized as is here!
+    --   TablineFileName,
+    --   TablineFileFlags,
+    -- }
+
+    -- a nice "x" button to close the buffer
+    -- local TablineCloseButton = {
+    --   condition = function(self)
+    --     return not vim.api.nvim_buf_get_option(self.bufnr, "modified")
+    --   end,
+    --   { provider = " " },
+    --   {
+    --     provider = "",
+    --     hl = { fg = "gray" },
+    --     on_click = {
+    --       callback = function(_, minwid)
+    --         vim.schedule(function()
+    --           vim.api.nvim_buf_delete(minwid, { force = false })
+    --           vim.cmd.redrawtabline()
+    --         end)
+    --       end,
+    --       minwid = function(self)
+    --         return self.bufnr
+    --       end,
+    --       name = "heirline_tabline_close_buffer_callback",
+    --     },
+    --   },
+    -- }
+
+    -- The final touch!
+    -- local TablineBufferBlock = utils.surround({ "", "" }, function(self)
+    --   if self.is_active then
+    --     return utils.get_highlight("TabLineSel").bg
+    --   else
+    --     return utils.get_highlight("TabLine").bg
+    --   end
+    -- end, { TablineFileNameBlock, TablineCloseButton })
+
+    -- and here we go
+    -- local BufferLine = utils.make_buflist(
+    --     TablineBufferBlock,
+    --     { provider = "", hl = { fg = "gray" } }, -- left truncation, optional (defaults to "<")
+    --     { provider = "", hl = { fg = "gray" } } -- right trunctation, also optional (defaults to ...... yep, ">")
+    --     -- by the way, open a lot of buffers and try clicking them ;)
+    -- )
+
+    -- }}} Bufferline
+
+    -- {{{ Diagnostics
+
+    local Diagnostics = {
+
+      on_click = {
+        callback = function()
+          vim.cmd 'TroubleToggle'
+        end,
+        name = 'Trouble',
+      },
+
+      condition = conditions.has_diagnostics,
+      static = {
+        error_icon = '', -- vim.fn.sign_getdefined('DiagnosticSignError')[1].text,
+        warn_icon = '', -- vim.fn.sign_getdefined('DiagnosticSignWarn')[1].text,
+        info_icon = '', -- vim.fn.sign_getdefined('DiagnosticSignInfo')[1].text,
+        hint_icon = '', -- vim.fn.sign_getdefined('DiagnosticSignHint')[1].text,
+      },
+
+      init = function(self)
+        self.errors = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
+        self.warnings = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.WARN })
+        self.hints = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.HINT })
+        self.info = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.INFO })
+      end,
+
+      update = { 'DiagnosticChanged', 'BufEnter' },
+
+      {
+        provider = '![',
+      },
+      {
+        provider = function(self)
+          -- 0 is just another output, we can decide to print it or not!
+          return self.errors > 0 and (self.error_icon .. self.errors .. ' ')
+        end,
+        hl = { fg = 'diag_error', bold = true },
+      },
+      {
+        provider = function(self)
+          return self.warnings > 0 and (self.warn_icon .. self.warnings .. ' ')
+        end,
+        hl = { fg = 'diag_warn', bold = true },
+      },
+      {
+        provider = function(self)
+          return self.info > 0 and (self.info_icon .. self.info .. ' ')
+        end,
+        hl = { fg = 'diag_info', bold = true },
+      },
+      {
+        provider = function(self)
+          return self.hints > 0 and (self.hint_icon .. self.hints)
+        end,
+        hl = { fg = 'diag_hint', bold = true },
+      },
+      {
+        provider = ']',
+      },
+    }
+
+    -- }}} Diagnostics
+
+    -- {{{ FileType
+
+    local FileType = {
+      provider = function()
+        return string.upper(vim.bo.filetype)
+      end,
+      hl = { fg = utils.get_highlight('Type').fg, bold = true },
+    }
+
+    -- }}} FileType
+
+    -- {{{ FileNameBlock
+    local FileNameBlock = {
+
+      -- let's first set up some attributes needed by this component and it's children
+      init = function(self)
+        self.filename = vim.api.nvim_buf_get_name(0)
+      end,
+    }
+    -- We can now define some children separately and add them later
+
+    -- local FileIcon = {
+
+    --   on_click = {
+    --     callback = function() vim.cmd("AerialToggle") end,
+    --     name = "Trouble",
+    --   },
+    --   init = function(self)
+    --     local filename = self.filename
+    --     local extension = vim.fn.fnamemodify(filename, ':e')
+    --     self.icon, self.icon_color =
+    --         require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+    --   end,
+    --   provider = function(self)
+    --     return self.icon and (self.icon .. ' ')
+    --   end,
+    --   hl = function(self)
+    --     return { fg = self.icon_color }
+    --   end,
+    -- }
+
+    local FileName = {
+
+      on_click = {
+        callback = function()
+          vim.cmd 'NvimTreeToggle'
+        end,
+        name = 'NvimTreeToggle',
+      },
+
+      provider = function(self)
+        -- first, trim the pattern relative to the current directory. For other
+        -- options, see :h filename-modifers
+        local filename = vim.fn.fnamemodify(self.filename, ':.')
+        if filename == '' then
+          return '[No Name]'
+        end
+        -- now, if the filename would occupy more than 1/4th of the available
+        -- space, we trim the file path to its initials
+        -- See Flexible Components section below for dynamic truncation
+        if not conditions.width_percent_below(#filename, 0.25) then
+          filename = vim.fn.pathshorten(filename)
+        end
+        return filename
+      end,
+      -- hl = { fg = utils.get_highlight('Directory').fg },
+      hl = { fg = '#ff0f00', bold = true },
+    }
+
+    local FileFlags = {
+      {
+        condition = function()
+          return vim.bo.modified
+        end,
+        provider = '[+]',
+        hl = { fg = 'green' },
+      },
+      {
+        condition = function()
+          return not vim.bo.modifiable or vim.bo.readonly
+        end,
+        provider = '',
+        hl = { fg = 'orange' },
+      },
+    }
+
+    -- Now, let's say that we want the filename color to change if the buffer is
+    -- modified. Of course, we could do that directly using the FileName.hl field,
+    -- but we'll see how easy it is to alter existing components using a "modifier"
+    -- component
+
+    local FileNameModifer = {
+      hl = function()
+        if vim.bo.modified then
+          -- use `force` because we need to override the child's hl foreground
+          return { fg = 'cyan', bold = true, force = true }
+        end
+      end,
+    }
+
+    -- let's add the children to our FileNameBlock component
+    FileNameBlock = utils.insert(
+      FileNameBlock,
+      -- FileIcon,
+      utils.insert(FileNameModifer, FileName), -- a new table where FileName is a child of FileNameModifier
+      FileFlags,
+      { provider = '%<' } -- this means that the statusline is cut here when there's not enough space
+    )
+
+    -- }}} FileNameBlock
+
+    -- {{{ Git
+    local Git = {
+
+      on_click = {
+        callback = function()
+          require('neogit').open { kind = 'vsplit' }
+        end, --
+        name = 'neogit',
+      },
+
+      condition = conditions.is_git_repo,
+
+      init = function(self)
+        self.status_dict = vim.b.gitsigns_status_dict
+        self.has_changes = self.status_dict.added ~= 0 or self.status_dict.removed ~= 0 or self.status_dict.changed ~= 0
+      end,
+      hl = { fg = 'orange', bold = true },
+
+      { -- git branch name
+        provider = function(self)
+          return ' ' .. self.status_dict.head
+        end,
+        hl = { bold = true },
+      },
+      -- You could handle delimiters, icons and counts similar to Diagnostics
+      {
+        condition = function(self)
+          return self.has_changes
+        end,
+        provider = '(',
+      },
+      {
+        provider = function(self)
+          local count = self.status_dict.added or 0
+          return count > 0 and ('+' .. count)
+        end,
+        hl = { fg = '#00dd00', bold = true },
+      },
+      {
+        provider = function(self)
+          local count = self.status_dict.removed or 0
+          return count > 0 and ('-' .. count)
+        end,
+        hl = { fg = '#cc0000', bold = true },
+      },
+      {
+        provider = function(self)
+          local count = self.status_dict.changed or 0
+          return count > 0 and ('~' .. count)
+        end,
+        hl = { fg = '#cccc00', bold = true },
+      },
+      {
+        condition = function(self)
+          return self.has_changes
+        end,
+        provider = ')',
+      },
+    }
+    -- }}} Git
+
+    -- {{{ HelpFileName
+    local HelpFileName = {
+      condition = function()
+        return vim.bo.filetype == 'help'
+      end,
+      provider = function()
+        local filename = vim.api.nvim_buf_get_name(0)
+        return vim.fn.fnamemodify(filename, ':t')
+      end,
+      hl = { fg = colors.blue },
+    }
+    -- }}} HelpFileName
+
+    -- {{{ LspActive
+
+    local LSPActive = {
+      condition = conditions.lsp_attached,
+      update = { 'LspAttach', 'LspDetach', 'BufEnter' },
+
+      -- You can keep it simple,
+      -- provider = " [LSP]",
+
+      -- Or complicate things a bit and get the servers names
+      provider = function()
+        local names = {}
+        for _, server in pairs(vim.lsp.get_active_clients { bufnr = 0 }) do
+          table.insert(names, server.name)
+        end
+        return ' [' .. table.concat(names, ' ') .. ']'
+      end,
+      hl = { fg = 'green', bold = true },
+    }
+
+    -- }}} LspActive
+
+    -- {{{ LSPMessages
+    -- I personally use it only to display progress messages!
+    -- See lsp-status/README.md for configuration options.
+
+    -- Note: check "j-hui/fidget.nvim" for a nice statusline-free alternative.
+    -- local LSPMessages = {
+    --   provider = require("lsp-status").status,
+    --   hl = { fg = "gray" },
+    -- }
+    -- }}} LSPMessages
+
+    -- {{{ Navic
+
+    -- Awesome plugin
+
+    -- The easy way.
+    -- local Navic = {
+    --   condition = function() return require("nvim-navic").is_available() end,
+    --   provider = function()
+    --     return require("nvim-navic").get_location({ highlight = true })
+    --   end,
+    --   update = 'CursorMoved'
+    -- }
+
+    -- -- Full nerd (with icon colors and clickable elements)!
+    -- -- works in multi window, but does not support flexible components (yet ...)
+    -- local Navic = {
+    --   condition = function() return require("nvim-navic").is_available() end,
+    --   static = {
+    --     -- create a type highlight map
+    --     type_hl = {
+    --       File = "Directory",
+    --       Module = "@include",
+    --       Namespace = "@namespace",
+    --       Package = "@include",
+    --       Class = "@structure",
+    --       Method = "@method",
+    --       Property = "@property",
+    --       Field = "@field",
+    --       Constructor = "@constructor",
+    --       Enum = "@field",
+    --       Interface = "@type",
+    --       Function = "@function",
+    --       Variable = "@variable",
+    --       Constant = "@constant",
+    --       String = "@string",
+    --       Number = "@number",
+    --       Boolean = "@boolean",
+    --       Array = "@field",
+    --       Object = "@type",
+    --       Key = "@keyword",
+    --       Null = "@comment",
+    --       EnumMember = "@field",
+    --       Struct = "@structure",
+    --       Event = "@keyword",
+    --       Operator = "@operator",
+    --       TypeParameter = "@type",
+    --     },
+    --     -- bit operation dark magic, see below...
+    --     enc = function(line, col, winnr)
+    --       return bit.bor(bit.lshift(line, 16), bit.lshift(col, 6), winnr)
+    --     end,
+    --     -- line: 16 bit (65535); col: 10 bit (1023); winnr: 6 bit (63)
+    --     dec = function(c)
+    --       local line = bit.rshift(c, 16)
+    --       local col = bit.band(bit.rshift(c, 6), 1023)
+    --       local winnr = bit.band(c, 63)
+    --       return line, col, winnr
+    --     end
+    --   },
+    --   init = function(self)
+    --     local data = require("nvim-navic").get_data() or {}
+    --     local children = {}
+    --     -- create a child for each level
+    --     for i, d in ipairs(data) do
+    --       -- encode line and column numbers into a single integer
+    --       local pos = self.enc(d.scope.start.line, d.scope.start.character, self.winnr)
+    --       local child = {
+    --         {
+    --           provider = d.icon,
+    --           hl = self.type_hl[d.type],
+    --         },
+    --         {
+    --           -- escape `%`s (elixir) and buggy default separators
+    --           provider = d.name:gsub("%%", "%%%%"):gsub("%s*->%s*", ''),
+    --           -- highlight icon only or location name as well
+    --           -- hl = self.type_hl[d.type],
+
+    --           on_click = {
+    --             -- pass the encoded position through minwid
+    --             minwid = pos,
+    --             callback = function(_, minwid)
+    --               -- decode
+    --               local line, col, winnr = self.dec(minwid)
+    --               vim.api.nvim_win_set_cursor(vim.fn.win_getid(winnr), { line, col })
+    --             end,
+    --             name = "heirline_navic",
+    --           },
+    --         },
+    --       }
+    --       -- add a separator only if needed
+    --       if #data > 1 and i < #data then
+    --         table.insert(child, {
+    --           provider = " > ",
+    --           hl = { fg = 'bright_fg' },
+    --         })
+    --       end
+    --       table.insert(children, child)
+    --     end
+    --     -- instantiate the new child, overwriting the previous one
+    --     self.child = self:new(children, 1)
+    --   end,
+    --   -- evaluate the children containing navic components
+    --   provider = function(self)
+    --     return self.child:eval()
+    --   end,
+    --   hl = { fg = "gray" },
+    --   update = 'CursorMoved'
+    -- }
+
+    -- }}} Navic
+
+    -- {{{ Ruler & ScrollBar
+
+    -- We're getting minimalists here!
+    local Ruler = {
+      -- %l = current line number
+      -- %L = number of lines in the buffer
+      -- %c = column number
+      -- %P = percentage through file of displayed window
+      provider = '%7(%l/%3L%):%2c %P',
+    }
+    -- I take no credits for this! :lion:
+    local ScrollBar = {
+      static = {
+        sbar = { '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█' },
+        -- Another variant, because the more choice the better.
+        -- sbar = { '🭶', '🭷', '🭸', '🭹', '🭺', '🭻' }
+      },
+      provider = function(self)
+        local curr_line = vim.api.nvim_win_get_cursor(0)[1]
+        local lines = vim.api.nvim_buf_line_count(0)
+        local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
+        return string.rep(self.sbar[i], 2)
+      end,
+      hl = { fg = 'blue', bg = 'bright_bg' },
+    }
+
+    -- }}} Ruler & ScrollBar
+
+    -- {{{ Separator |
+    local Separator = {
+      -- require('nvim-web-devicons').get_icon()
+      provider = function()
+        -- return "|"
+        return '❘'
+        -- return "⎞⎛"
+        -- ⎞⎡⎛
+      end,
+      hl = function()
+        return { fg = mycolors.donJuan }
+      end,
+    }
+    -- }}} Separator |
+
+    -- {{{ Separator |
+    local StatusLineSeparator = {
+      -- require('nvim-web-devicons').get_icon()
+      provider = function()
+        -- return "|"
+        return '❘'
+        -- return "⎞⎛"
+        -- ⎞⎡⎛
+      end,
+      hl = function()
+        return { fg = mycolors.donJuan }
+      end,
+    }
+    -- }}} Separator |
+
+    -- {{{ Space
+    local Space = {
+      -- require('nvim-web-devicons').get_icon()
+      provider = function()
+        return ' '
+      end,
+      hl = function()
+        return { fg = mycolors.donJuan }
+      end,
+    }
+    -- }}} Space
+
+    -- {{{ Space
+    local StatusLineSpace = {
+      -- require('nvim-web-devicons').get_icon()
+      provider = function()
+        return ' '
+      end,
+      hl = function()
+        return { fg = mycolors.donJuan }
+      end,
+    }
+    -- }}} Space
+
+    -- {{{ Space
+    local StatusSpace = {
+      -- require('nvim-web-devicons').get_icon()
+      provider = function()
+        return ' '
+      end,
+      hl = function()
+        return { fg = mycolors.donJuan }
+      end,
+    }
+    -- }}} Space
+
+    -- {{{ Tabpage
+
+    local Tabpage = {
+      provider = function(self)
+        ---------------------------------------------------------------------?
+
+        local bufnr = bufs_in_tab(self.tabpage)
+        -- local bufnr = get_active_buffer_in_tabpage(self.tabpage)
+        -- -- local bufnr = get_active_buffer_in_tab(self.tabpage)
+        local filestring = filepath_to_filename(vim.fn.bufname(get_first_key(bufnr)))
+        -- local filestring = filepath_to_filename(vim.fn.bufname(bufnr))
+        if filestring == nil then
+          filestring = '[No Name]'
+        end
+        -- return '' .. '⎛' .. bufnr .. '⎞'
+        return '' .. '⎛' .. filestring .. '⎞'
+
+        -- return '' .. '⎛'  ..  self.tabpage .. filestring .. '⎞'
+        -- return '' .. '⎛' .. self.tabnr  ..  filestring .. '⎞'
+      end,
+      hl = function(self)
+        if not self.is_active then
+          return 'TabLine'
+        else
+          return 'TabLineSel'
+        end
+      end,
+      update = 'CursorMoved', -- TODO: change to something else?
+    }
+
+    local TabpageClose = {
+      provider = '%999X  %X',
+      hl = 'TabLine',
+    }
+
+    local TabPages = {
+      -- only show this component if there's 2 or more tabpages
+      condition = function()
+        return #vim.api.nvim_list_tabpages() >= 2
+      end,
+      -- { provider = "%=" },
+      utils.make_tablist(Tabpage),
+      TabpageClose,
+    }
+
+    -- }}} Tabpage
+
+    -- {{{ Tabline offset
+    -- local TabLineOffset = {
+    --   condition = function(self)
+    --     local win = vim.api.nvim_tabpage_list_wins(0)[1]
+    --     local bufnr = vim.api.nvim_win_get_buf(win)
+    --     self.winid = win
+
+    --     if vim.bo[bufnr].filetype == "NvimTree" then
+    --       self.title = "NvimTree"
+    --       return true
+    --       -- elseif vim.bo[bufnr].filetype == "TagBar" then
+    --       --     ...
+    --     end
+    --   end,
+
+    --   provider = function(self)
+    --     local title = self.title
+    --     local width = vim.api.nvim_win_get_width(self.winid)
+    --     local pad = math.ceil((width - #title) / 2)
+    --     return string.rep(" ", pad) .. title .. string.rep(" ", pad)
+    --   end,
+
+    --   hl = function(self)
+    --     if vim.api.nvim_get_current_win() == self.winid then
+    --       return "TablineSel"
+    --     else
+    --       return "Tabline"
+    --     end
+    --   end,
+    -- }
+
+    -- }}} Tabline offset
+
+    -- {{{ Venv
+    -- local actived_venv = function()
+    --   local venv_name = require('venv-selector').get_active_venv()
+    --   if venv_name ~= nil then
+    --     if string.match(venv_name, 'conda') then
+    --       return string.gsub(venv_name, '/home/jordan/.conda/envs/', '(conda) ')
+    --     end
+    --     if string.match(venv_name, 'poetry') then
+    --       return string.gsub(venv_name, '.*/pypoetry/virtualenvs/', '(poetry) ')
+    --     end
+    --   else
+    --     return 'venv'
+    --   end
+    -- end
+
+    -- local venv = {
+    --   {
+    --     provider = function()
+    --       return '  [' .. actived_venv() .. '] '
+    --     end,
+    --   },
+    --   on_click = {
+    --     callback = function()
+    --       vim.cmd.VenvSelect()
+    --     end,
+    --     name = 'heirline_statusline_venv_selector',
+    --   },
+    -- }
+
+    -- }}} Venv
+
+    -- Vi Mode {{{
+    local ViMode = {
+      -- get vim current mode, this information will be required by the provider
+      -- and the highlight functions, so we compute it only once per component
+      -- evaluation and store it as a component attribute
+      init = function(self)
+        self.mode = vim.fn.mode(1) -- :h mode()
+      end,
+      -- Now we define some dictionaries to map the output of mode() to the
+      -- corresponding string and color. We can put these into `static` to compute
+      -- them at initialisation time.
+      static = {
+        mode_names = { -- change the strings if you like it vvvvverbose!
+          n = 'N',
+          no = 'N?',
+          nov = 'N?',
+          noV = 'N?',
+          ['no\22'] = 'N?',
+          niI = 'Ni',
+          niR = 'Nr',
+          niV = 'Nv',
+          nt = 'Nt',
+          v = 'V',
+          vs = 'Vs',
+          V = 'V_',
+          Vs = 'Vs',
+          ['\22'] = '^V',
+          ['\22s'] = '^V',
+          s = 'S',
+          S = 'S_',
+          ['\19'] = '^S',
+          i = 'I',
+          ic = 'Ic',
+          ix = 'Ix',
+          R = 'R',
+          Rc = 'Rc',
+          Rx = 'Rx',
+          Rv = 'Rv',
+          Rvc = 'Rv',
+          Rvx = 'Rv',
+          c = 'C',
+          cv = 'Ex',
+          r = '...',
+          rm = 'M',
+          ['r?'] = '?',
+          ['!'] = '!',
+          t = 'T',
+        },
+        mode_colors = {
+          n = 'red',
+          i = 'green',
+          v = 'cyan',
+          V = 'cyan',
+          ['\22'] = 'cyan',
+          c = 'orange',
+          s = 'purple',
+          S = 'purple',
+          ['\19'] = 'purple',
+          R = 'orange',
+          r = 'orange',
+          ['!'] = 'red',
+          t = 'red',
+        },
+      },
+      -- We can now access the value of mode() that, by now, would have been
+      -- computed by `init()` and use it to index our strings dictionary.
+      -- note how `static` fields become just regular attributes once the
+      -- component is instantiated.
+      -- To be extra meticulous, we can also add some vim statusline syntax to
+      -- control the padding and make sure our string is always at least 2
+      -- characters long. Plus a nice Icon.
+      provider = function(self)
+        return '%2(' .. self.mode_names[self.mode] .. '%)'
+      end,
+      -- Same goes for the highlight. Now the foreground will change according to the current mode.
+      hl = function(self)
+        local mode = self.mode:sub(1, 1) -- get only the first mode character
+        return { fg = self.mode_colors[mode], bold = true }
+      end,
+      -- Re-evaluate the component only on ModeChanged event!
+      -- Also allows the statusline to be re-evaluated when entering operator-pending mode
+      update = {
+        'ModeChanged',
+        pattern = '*:*',
+        callback = vim.schedule_wrap(function()
+          vim.cmd 'redrawstatus'
+        end),
+      },
+    }
+
+    -- Vi Mode }}}
+
+    local Align = { provider = '%=' }
+
+    local actionHints = {
+      provider = require('lsp-progress').progress, -- require("action-hints").statusline()
+    }
+
+    --- }}} Components
+
+    -- {{{ Buttons
+    -- 󰒪󰟔
+    -- 
+    -- │󱫫󱫤󱫡󱫐󱫠󱫪󱫬󱧡󱕱󱕜󱎯󱊡󱊢󱊣󱊤󱊥󱊦󱇪󱅥󰳤󰳦󰦐󰟔󰃤󰄵
+    -- ◍󰂒󰂓󰂛󰂜󰂞󰂠󰂟󰃛󰃞󰃟󰅏󰅎󱇪󱏵󱏴󱏶󱏷󱪼
+    -- 󰴭
+    -- 󰀦󰀨󰀩❘❘
+    -- 
+    -- 
+    -- 󰔦󰕃󰔦󰡟󰺛󰴭
+    -- 󰎦󰎧󰎩󰎪󰎬󰎭󰎮󰎪󰎰󰎱󰎳󰎵󰎶󰎸󰎹󰎻󰎼󰎾󰎡󰎣󰛦󰟟󰧑󰦌󰬯󰯻󰯺󰻕󰻖󱀇󱍢󱑷󱓞󱓟󱗃󱢴󱢊󱢋󱩡󱩲󱨚
+
+    -- {{{ CPPButton 
+    local CPPButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_cpp_scratchpad()
+        end,
+        name = 'CPPButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- 
+      end,
+      hl = function()
+        return { fg = mycolors.bluePartyParrot, underline = true }
+      end,
+    }
+    -- }}} CPPButton 
+
+    -- {{{ CButton 
+    local CButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_c_scratchpad()
+        end,
+        name = 'CButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- 
+      end,
+      hl = function()
+        return { fg = mycolors.bluePartyParrot, underline = true }
+      end,
+    }
+    -- }}} CButton 
+
+    -- {{{ DebugButton 
+    local DebugButton = { -- 󰃤
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          require('dapui').toggle()
+        end,
+        name = 'dapui',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        -- return ""
+        return ''
+      end,
+      hl = function()
+        return { fg = mycolors.appleIiLime, underline = true }
+      end,
+    }
+    -- }}} DebugButton 󰃤
+
+    -- {{{ FileTreeButton 
+    local FileTreeButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'NvimTreeToggle'
+        end,
+        name = 'FileTreeButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+      end,
+      hl = function()
+        return { fg = mycolors.bluePartyParrot, underline = true }
+      end,
+    }
+    -- }}} FileTreeButton 
+
+    -- {{{ Fortran Button 󰯺
+    local FortranButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_fortran_scratchpad()
+        end,
+        name = 'FortranButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return '󰯺'
+        -- 󰯺
+      end,
+      hl = function()
+        -- return { fg = colors.bluePartyParrot, bg = colors.button_bg, underline = false, bold = true }
+        return { fg = '#aa00ff', underline = true, bold = true }
+      end,
+    }
+    -- }}} FortranButton 󰯺
+
+    -- {{{ GitButton 
+    local GitButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.toggle_neogit()
+          -- vim.cmd 'Neogit kind=vsplit'
+        end,
+        name = 'git',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- 
+        -- 󰊢
+      end,
+      hl = function()
+        return { fg = mycolors.phillipineOrange, underline = true }
+      end,
+    }
+    -- }}} GitButton 󰊢
+
+    -- {{{ GithubButton 
+    local GithubButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'e ~/.config/nvim/README.md'
+        end,
+        name = 'settingsbutton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- return ""
+      end,
+      hl = function()
+        return { fg = mycolors.trackAndField, underline = true }
+      end,
+    }
+    -- }}} GithubButton 
+
+    -- {{{ GoButton 
+    local GoButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_cpp_scratchpad()
+        end,
+        name = 'GoButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- 
+      end,
+      hl = function()
+        -- return { fg = colors.bluePartyParrot, bg = colors.button_bg, underline = false, bold = true }
+        return { fg = '#0100ff', underline = true, bold = true }
+      end,
+    }
+    -- }}} CPPButton 
+
+    -- {{{ HomeButton 
+    local HomeButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_haskell_scratchpad()
+        end,
+        name = 'HomeButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+      end,
+      hl = function()
+        return { fg = mycolors.crashPink, underline = true }
+      end,
+    }
+    -- }}} HomeButton 
+
+    -- {{{ HaskellButton 
+    local HaskellButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_haskell_scratchpad()
+        end,
+        name = 'HaskellButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+      end,
+      hl = function()
+        return { fg = mycolors.crashPink, underline = true }
+      end,
+    }
+    -- }}} HaskellButton 
+
+    -- {{{ JavaButton 
+    local JavaButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_java_scratchpad()
+        end,
+        name = 'JavaButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- 
+      end,
+      hl = function()
+        return { fg = mycolors.phillipineOrange, underline = true }
+      end,
+    }
+    -- }}} JavaButton 
+
+    -- {{{ JavascriptButton 
+    local JavascriptButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_cpp_scratchpad()
+        end,
+        name = 'GoButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- 
+      end,
+      hl = function()
+        return { fg = '#bbbb33', underline = true }
+      end,
+    }
+    -- }}} Javascript Button 
+
+    -- {{{ LightDarkButton 
+
+    local LightDarkButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'ToggleDarkMode'
+        end,
+        name = 'lightdarkbutton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+      end,
+      hl = function()
+        return { fg = colors.lightdark_fg, underline = true }
+      end,
+    }
+
+    -- }}} LightDarkButton 
+
+    -- {{{ LuaButton 
+    local LuaButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'Neotest summary'
+        end,
+        name = 'TestsButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- 
+      end,
+      hl = function()
+        return { fg = mycolors.bluePartyParrot, underline = true }
+      end,
+    }
+    -- }}} LuaButton 
+
+    -- {{{ NotificationButton 󰂞
+    local NotificationButton = { -- 󰂞
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'NvimTreeToggle'
+        end,
+        name = 'notification',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return '󰂞'
+      end,
+      hl = function()
+        return { fg = mycolors.lightSalmon, underline = true }
+      end,
+    }
+
+    -- }}} NotificationButton 󰂞
+
+    -- {{{ OCamlButton 
+    local OCamlButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_haskell_scratchpad()
+        end,
+        name = 'OCamlButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- ''
+      end,
+      hl = function()
+        return { fg = mycolors.phillipineOrange, underline = true }
+      end,
+    }
+    -- }}} HaskellButton 
+
+    -- {{{ PomodoroButtonOne 
+    local PomodoroButtonOne = { -- 
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'PomodoroStart'
+        end,
+        name = 'pomodorobutton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return '󱫠'
+      end,
+      hl = function()
+        return { fg = mycolors.trackAndField, underline = true }
+      end,
+    }
+    -- }}} PomodoroButtonOne 
+
+    -- {{{ PomodoroButtonTwo 
+    local PomodoroButtonTwo = { -- 
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'PomodoroStart'
+        end,
+        name = 'pomodorobutton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function(_)
+        return '' .. require('pomodoro').statusline():sub(4)
+      end,
+      hl = function()
+        return { fg = mycolors.trackAndField }
+      end,
+    }
+    -- }}} PomodoroButtonTwo 
+
+    -- {{{ PythonButton 
+    local PythonButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_python_scratchpad()
+        end,
+        name = 'PythonButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+      end,
+      hl = function()
+        return { fg = '#bbbb33', underline = true }
+      end,
+    }
+    -- }}} FileTreeButton 
+
+    -- {{{ RButton 󰟔
+    local RButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_r_scratchpad()
+        end,
+        name = 'RButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return '󰟔'
+      end,
+      hl = function()
+        return { fg = mycolors.bluePartyParrot, underline = true }
+      end,
+    }
+    -- }}} RButton 󰟔
+
+    -- {{{ RustButton 
+    local RustButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'Neotest summary'
+        end,
+        name = 'TestsButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- 
+      end,
+      hl = function()
+        return { fg = mycolors.trackAndField, underline = true }
+      end,
+    }
+    -- }}} RustButton 
+
+    -- {{{ SettingsButton 
+    local SettingsButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'e ~/.config/nvim/README.md'
+        end,
+        name = 'settingsbutton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+      end,
+      hl = function()
+        return { fg = mycolors.trackAndField, underline = true }
+      end,
+    }
+    -- }}} SettingsButton 
+
+    -- {{{ ShellButton 
+    local ShellButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_bash_scratchpad()
+        end,
+        name = 'BashButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+      end,
+      hl = function()
+        return { fg = '#999999', underline = true }
+      end,
+    }
+    -- }}} ShellButton 
+
+    -- {{{ SidebarButton 
+    local SidebarButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'AerialToggle'
+        end,
+        name = 'sidebarbutton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+      end,
+      hl = function()
+        return { fg = mycolors.donJuan }
+      end,
+    }
+    -- }}} SidebarButton 
+
+    -- {{{ TestsButton 
+    local TestsButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          vim.cmd 'Neotest summary'
+        end,
+        name = 'TestsButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+      end,
+      hl = function()
+        return { fg = mycolors.munchOnMelon, underline = true }
+      end,
+    }
+    -- }}} FileTreeButton 󰂓
+
+    -- {{{ TodoButton 󰄸
+    local TodoButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.toggle_todo()
+        end,
+        name = 'todo',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return '󰄸'
+      end,
+      hl = function()
+        return { fg = mycolors.moussaka, underline = true }
+      end,
+    }
+    -- }}} TodoButton 󰄸
+
+    -- {{{ ZigButton 
+    local ZigButton = {
+      -- require('nvim-web-devicons').get_icon()
+      on_click = {
+        callback = function()
+          ju.start_java_scratchpad()
+        end,
+        name = 'ZigButton',
+      },
+      init = function(self)
+        local filename = self.filename
+        local extension = vim.fn.fnamemodify(filename, ':e')
+        self.icon, self.icon_color =
+          require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+      end,
+      provider = function()
+        return ''
+        -- 
+      end,
+      hl = function()
+        return { fg = mycolors.phillipineOrange, underline = true }
+      end,
+    }
+    -- }}} ZigButton 
+
+    -- }}} Buttons
+
+    -- {{{ Statusline
+
+    local DefaultStatusline = {
+      { Diagnostics },
+      { StatusSpace },
+      { Git },
+      { Ruler },
+      { StatusSpace },
+      { FileNameBlock },
+      { Align },
+
+      { LSPActive },
+      -- { venv },
+
+      { NotificationButton },
+      { StatusLineSpace },
+      -- { PomodoroButtonOne },
+      -- { PomodoroButtonTwo },
+      { StatusLineSeparator },
+
+      { StatusLineSpace },
+      { StatusLineSeparator },
+      { LightDarkButton },
+
+      { StatusLineSpace },
+      { StatusLineSeparator },
+      { SettingsButton },
+
+      { StatusLineSpace },
+      { StatusLineSeparator },
+      { SidebarButton },
+
+      { StatusLineSpace },
+      { StatusLineSeparator },
+
+      -- { Ruler},
+      -- { Space },
+      -- { ScrollBar },
+      -- { Space },
+      -- { ViMode },
+      -- { LSPMessages },
+    }
+
+    local InactiveStatusline = {
+      condition = conditions.is_not_active,
+      FileType,
+      Space,
+      FileName,
+      Align,
+    }
+
+    local SpecialStatusline = {
+      condition = function()
+        return conditions.buffer_matches {
+          buftype = { 'nofile', 'prompt', 'help', 'quickfix' },
+          filetype = { '^git.*', 'fugitive' },
+        }
+      end,
+
+      FileType,
+      Space,
+      HelpFileName,
+      Align,
+    }
+
+    local TerminalName = {
+      -- we could add a condition to check that buftype == 'terminal'
+      -- or we could do that later (see #conditional-statuslines below)
+      provider = function()
+        local tname, _ = vim.api.nvim_buf_get_name(0):gsub('.*:', '')
+        return ' ' .. tname
+      end,
+      hl = { fg = 'blue', bold = true },
+    }
+
+    local TerminalStatusline = {
+      condition = function()
+        return conditions.buffer_matches { buftype = { 'terminal' } }
+      end,
+      hl = { bg = 'dark_red' },
+      -- Quickly add a condition to the ViMode to only show it when buffer is active!
+      { condition = conditions.is_active, ViMode, Space },
+      FileType,
+      Space,
+      TerminalName,
+      Align,
+    }
+
+    -- }}} Statusline
+
+    -- {{{ Build Lines
+    local StatusLines = {
+      hl = function()
+        if conditions.is_active() then
+          return 'StatusLine'
+        else
+          return 'StatusLineNC'
+        end
+      end,
+      -- the first statusline with no condition, or which condition returns true is used.
+      -- think of it as a switch case with breaks to stop fallthrough.
+      fallthrough = false,
+      SpecialStatusline,
+      TerminalStatusline,
+      InactiveStatusline,
+      DefaultStatusline,
+    }
+
+    local TabLine = {
+      { Separator },
+      { HomeButton },
+      { Space },
+      { Separator },
+      { FileTreeButton },
+      { Space },
+      { Separator },
+      { GitButton },
+      { Space },
+      { Separator },
+      { GithubButton },
+      { Space },
+      { Separator },
+      { TestsButton },
+      { Space },
+      { Separator },
+      { DebugButton },
+      { Space },
+      { Separator },
+      { TodoButton },
+      { Space },
+      { Separator },
+      { Align },
+      { Separator },
+      { TabPages },
+      { Separator },
+      { Align },
+      -- { ViMode },
+
+      { Space },
+      { Separator },
+      { ShellButton },
+
+      { Space },
+      { Separator },
+      { CButton },
+
+      { Space },
+      { Separator },
+      { CPPButton },
+
+      { Space },
+      { Separator },
+      { GoButton },
+
+      { Space },
+      { Separator },
+      { FortranButton },
+
+      { Space },
+      { Separator },
+      { HaskellButton },
+
+      { Space },
+      { Separator },
+      { JavaButton },
+
+      { Space },
+      { Separator },
+      { JavascriptButton },
+
+      { Space },
+      { Separator },
+      { LuaButton },
+
+      { Space },
+      { Separator },
+      { OCamlButton },
+
+      { Space },
+      { Separator },
+      { PythonButton },
+
+      -- { Space },
+      -- { Separator },
+      -- { CButton },
+
+      { Space },
+      { Separator },
+      { RButton },
+
+      { Space },
+      { Separator },
+      { RustButton },
+
+      { Space },
+      { Separator },
+      { ZigButton },
+
+      { Space },
+      { Separator },
+    }
+
+    -- local WinBar = { { require(lspsaga.symbol.winbar).get_bar() }, { {}, {} } }
+    local WinBar = {
+      { FileNameBlock },
+      {},
+      -- { require('lspsaga.symbol.winbar').get_bar() },
+      { Align },
+      { actionHints },
+    }
+
+    local WinBarNC = {
+      {},
+      {},
+      -- { require('lspsaga.symbol.winbar').get_bar() },
+      -- {Align},
+      -- {actionHints},
+    }
+
+    local InactiveWinBar = {
+      condition = conditions.is_not_active,
+      {},
+      {},
+    }
+
+    local WinBars = {
+      -- hl = function()
+      --   if conditions.is_active() then
+      --     return 'WinBar'
+      --   else
+      --     return 'WinBarNC'
+      --   end
+      -- end,
+      -- the first statusline with no condition, or which condition returns true is used.
+      -- think of it as a switch case with breaks to stop fallthrough.
+      fallthrough = false,
+      -- SpecialStatusline,
+      -- TerminalStatusline,
+      InactiveWinBar,
+      WinBar,
+    }
+
+    -- local WinBar = { {Navic}, { {}, {} } }
+    -- local WinBar = { {}, { {}, {} } }
+    -- local TabLine = { {TabPages }, {}, {} }
+    -- local TabLine = { {BufferLine}, {}, {} }
+
+    -- }}} Build Lines
+
+    -- {{{ Setup Heirline
+
+    require('heirline').setup {
+      statusline = StatusLines,
+      winbar = WinBars,
+      tabline = TabLine,
+      opts = {
+        colors = colors,
+      },
+    }
+
+    -- }}} Setup Heirline
+  end,
+},
+
+-- }}} Heirline
+
+
+		-- https://github.com/ribelo/taskwarrior.nvim
+		{'ribelo/taskwarrior.nvim',
+			opts = { },
+			config = true
+		},
+
+
+		-- https://github.com/ntpeters/vim-better-whitespace.git
+		{ 'ntpeters/vim-better-whitespace' },
+
+		-- {{{ AsyncRun
+
+		{"folke/flash.nvim",
+			keys = {
+				{'s', '<CMD>lua require("flash").jump()<CR>', desc = "Flash Jump"},
+				{'S', '<CMD>lua require("flash").treesitter()<CR>', desc = "Flash lsp"}
+			}
+		},
+
+		{'skywind3000/asyncrun.vim'},
+		-- }}} AsyncRun
+
+		-- -- {{{ fzf
+    -- {'junegunn/fzf',
+		-- 	lazy = false,
+		-- 	build = function()
+		-- 		vim.fn['fzf#install']() -- TODO: fixme
+		-- 	end
+    -- },
+		--
+
+		{
+			"ibhagwan/fzf-lua",
+			-- optional for icon support
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			-- or if using mini.icons/mini.nvim
+			-- dependencies = { "echasnovski/mini.icons" },
+			opts = {}
+		},
+
+
+		-- -- }}} fzf
 
 		-- {{{ smart-splits
-    { 'mrjones2014/smart-splits.nvim' },
+    {
+			'mrjones2014/smart-splits.nvim',
+			lazy = false,
+			opts = {
+				cursor_follows_swapped_bufs = true,
+			},
+			keys = {
+				{ '<A-C-h>', '<CMD>lua require("smart-splits").swap_buf_left()<CR>', mode = {"i", "n", "t" }, desc = "Swap left" },
+				{ '<A-C-j>', '<CMD>lua require("smart-splits").swap_buf_down()<CR>', mode = {"i", "n", "t" }, desc = "Swap down" },
+				{ '<A-C-k>', '<CMD>lua require("smart-splits").swap_buf_up()<CR>', mode = {"i", "n", "t" }, desc = "Swap up" },
+				{ '<A-C-l>', '<CMD>lua require("smart-splits").swap_buf_right()<CR>', mode = {"i", "n", "t" }, desc = "Swap right" },
+			},
+		},
 		-- }}} smart-splits
 
 		-- {{{ Project.nvim
-    { 'ahmedkhalf/project.nvim', },
+    { 'ahmedkhalf/project.nvim',
+			lazy = true,
+		},
 		-- }}} Project.nvim
 
 		-- {{{ Copilot.vim
-    { 'github/copilot.vim', },
+    { 'github/copilot.vim',
+		  lazy = true,
+		},
 		-- }}} Copilot.vim
 
 		-- {{{ friently-snippets
-    { "rafamadriz/friendly-snippets" },
+    { "rafamadriz/friendly-snippets" ,
+			lazy = true,
+		},
 		-- }}} friently-snippets
 
 		-- {{{ nvim-bqf
 		{
 			'kevinhwang91/nvim-bqf',
+			lazy = true,
 			config = function()
 				local fn = vim.fn
 				function _G.qftf(info)
@@ -360,6 +2456,7 @@ require("lazy").setup({
     -- {{{ Highlight colors
 		{
 			'brenoprata10/nvim-highlight-colors',
+			lazy = true,
 			config = function()
 				require('nvim-highlight-colors').setup {
 					---Render style
@@ -386,12 +2483,23 @@ require("lazy").setup({
     -- {{{ Luasnip
 		{
 			"L3MON4D3/LuaSnip",
-			lazy = false,
+			lazy = true,
 			-- follow latest release.
 			version = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
 			-- install jsregexp (optional!).
 			build = "make install_jsregexp",
 			config = function()
+
+				local ls = require("luasnip")
+				ls.snippets = {
+					all = {
+						ls.parser.parse_snippet("fn", "function ${1:name}(${2:args})\n\t$0\nend"),
+					},
+					lua = {
+						ls.parser.parse_snippet("for", "for ${1:var}, ${2:value} in pairs(${3:table}) do\n\t$0\nend"),
+					},
+				}
+
 				-- require("luasnip/loaders/from_vscode").lazy_load()
 				-- will exclude all javascript snippets
 				require("luasnip.loaders.from_vscode").load {
@@ -405,13 +2513,18 @@ require("lazy").setup({
     -- }}} Luasnip
 
     -- {{{ Aerial
-    { 'stevearc/aerial.nvim', lazy = false, keys = { {'<Space>aa', '<CMD>AerialToggle<CR>', desc = 'Aerial'}, }, },
+    { 'stevearc/aerial.nvim',
+			lazy = false,
+			keys = { {'<Space>aa', '<CMD>AerialToggle<CR>', desc = 'Aerial'}, },
+			opts = {},
+		},
     -- }}} Aerial
 
     -- {{{ blink.cmp
 
 		{
 			"saghen/blink.cmp",
+			lazy = true,
 			dependencies = {
 				"rafamadriz/friendly-snippets",
 				"moyiz/blink-emoji.nvim",
@@ -477,22 +2590,22 @@ require("lazy").setup({
 
     -- {{{ Dashboard
 
-		{
-			'nvimdev/dashboard-nvim',
-			event = 'VimEnter',
-			config = function()
-				require('dashboard').setup {
-					-- config
-				}
-			end,
-			dependencies = { { 'nvim-tree/nvim-web-devicons' } }
-		},
+		-- {
+		-- 	'nvimdev/dashboard-nvim',
+		-- 	event = 'VimEnter',
+		-- 	config = function()
+		-- 		require('dashboard').setup {}
+		-- 	end,
+		-- 	dependencies = { { 'nvim-tree/nvim-web-devicons' } }
+		-- },
+
     -- }}} Dashboard
 
     -- {{{ Emoji.nvim
 
 		{
 			"allaman/emoji.nvim",
+			lazy = true,
 			version = "1.0.0", -- optionally pin to a tag
 			-- ft = "markdown", -- adjust to your needs
 			dependencies = {
@@ -526,6 +2639,7 @@ require("lazy").setup({
     -- https://github.com/lewis6991/gitsigns.nvim
 		{
 			'lewis6991/gitsigns.nvim',
+			lazy = true,
 			config = function()
 				require('gitsigns').setup {
 					signs                        = {
@@ -585,6 +2699,7 @@ require("lazy").setup({
 
 		{
 			'b0o/incline.nvim',
+			lazy=true,
 			config = function()
 				local devicons = require 'nvim-web-devicons'
 				require('incline').setup {
@@ -640,8 +2755,10 @@ require("lazy").setup({
     -- }}} Incline
 
     -- {{{ Lazydev
-    {
+
+		{
       "folke/lazydev.nvim",
+			lazy = true,
       ft = "lua", -- only load on lua files
       opts = {
         library = {
@@ -651,10 +2768,12 @@ require("lazy").setup({
         },
       },
     },
+
     -- }}} Lazydev
 
     -- {{{ Mason / LspConfig
     { "williamboman/mason.nvim",
+		  lazy = false,
       config = function()
         require'mason'.setup()
       end,
@@ -662,6 +2781,7 @@ require("lazy").setup({
 
 		{
 			"williamboman/mason-lspconfig.nvim",
+			lazy = false,
 			dependencies = { "williamboman/mason.nvim", },
 			config = function()
 				local ensured_servers = {
@@ -777,10 +2897,12 @@ require("lazy").setup({
 		},
 		{
 			"neovim/nvim-lspconfig",
+			lazy = false,
 			dependencies = {
 				"williamboman/mason.nvim",
 				"williamboman/mason-lspconfig.nvim",
 			},
+			command = { "Mason" }
 		},
     -- }}} Mason / LspConfig
 
@@ -815,29 +2937,57 @@ require("lazy").setup({
 				"MunifTanjim/nui.nvim",
 				-- {"3rd/image.nvim", opts = {}}, -- Optional image support in preview window: See `# Preview Mode` for more information
 			},
-			lazy = false,
+			lazy = true,
 			keys = {
-				{ '<Space>ff', '<CMD>Neotree toggle<CR>', desc = 'File Tree' },
+				-- { '<Space>ff', '<CMD>Neotree toggle<CR>', desc = 'File Tree' },
 			},
 		},
     -- }}} Neotree
 
     -- {{{ Lspsaga
 
-
 		{
 			'nvim-treesitter/nvim-treesitter',
+			lazy=false,
+			-- Use 'master' while monitoring updates in 'main'
+			checkout = 'master',
+			monitor = 'main',
+			hooks = { post_checkout = function() vim.cmd('TSUpdate') end },
 			build = function()
 				vim.cmd('TSUpdate')
+			end,
+			config = function()
+				require 'nvim-treesitter.configs'.setup {
+					ensure_installed = {
+						"c",
+						"lua",
+						"markdown",
+						"markdown_inline",
+						"query",
+						"vim",
+						"vimdoc"
+					},
+					sync_install = false,
+					auto_install = true,
+					ignore_install = { "javascript" },
+					highlight = {
+						enable = true,
+						disable = function(_, buf)
+							local max_filesize = 100 * 1024 -- 100 KB
+							local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+							if ok and stats and stats.size > max_filesize then
+								return true
+							end
+						end,
+						additional_vim_regex_highlighting = false,
+					},
+				}
 			end,
 		},
 
 		{
 			'nvimdev/lspsaga.nvim',
-			lazy = false,
-			config = function()
-				require('lspsaga').setup({})
-			end,
+			lazy = true,
 			dependencies = {
 				'nvim-treesitter/nvim-treesitter',     -- optional
 				'nvim-tree/nvim-web-devicons',         -- optional
@@ -848,6 +2998,170 @@ require("lazy").setup({
 				{ '<Space>en', '<CMD>Lspsaga diagnostic_jump_next<CR>', desc = "Next" },
 				{ '<Space>ep', '<CMD>Lspsaga diagnostic_jump_prev<CR>', desc = "Previous" },
 			},
+			config = function()
+				require('lspsaga').setup {
+					ui = {
+						border = 'single',
+						devicon = true,
+						title = true,
+						expand = '⊞',
+						collapse = '⊟',
+						code_action = 'a',
+						actionfix = ' ',
+						lines = { '┗', '┣', '┃', '━', '┏' },
+						kind = nil,
+						imp_sign = '󰳛 ',
+					},
+					hover = {
+						max_width = 0.9,
+						max_height = 0.8,
+						min_height = 0.5,
+						min_width = 0.5,
+						height = 0.5,
+						width = 0.5,
+						open_link = 'gx',
+						open_cmd = '!chrome',
+					},
+					diagnostic = {
+						show_code_action = false,
+						show_layout = 'float',
+						show_normal_height = 10,
+						jump_num_shortcut = true,
+						max_width = 0.8,
+						max_height = 0.6,
+						max_show_width = 0.9,
+						max_show_height = 0.6,
+						text_hl_follow = true,
+						border_follow = true,
+						extend_relatedInformation = false,
+						diagnostic_only_current = false,
+						keys = {
+							exec_action = 'o',
+							quit = 'q',
+							toggle_or_jump = '<CR>',
+							quit_in_show = { 'q', '<ESC>' },
+						},
+					},
+					code_action = {
+						num_shortcut = true,
+						show_server_name = false,
+						extend_gitsigns = false,
+						only_in_cursor = true,
+						max_height = 0.3,
+						keys = {
+							quit = 'q',
+							exec = '<CR>',
+						},
+					},
+					lightbulb = {
+						enable = false,
+						sign = true,
+						debounce = 10,
+						sign_priority = 40,
+						virtual_text = false,
+						enable_in_insert = true,
+					},
+					scroll_preview = {
+						scroll_down = '<C-f>',
+						scroll_up = '<C-b>',
+					},
+					request_timeout = 2000,
+					finder = {
+						max_height = 0.5,
+						left_width = 0.3,
+						right_width = 0.5,
+						methods = {},
+						default = 'ref+imp',
+						layout = 'float',
+						silent = false,
+						filter = {},
+						sp_inexist = false,
+						keys = {
+							shuttle = '[w',
+							toggle_or_open = 'o',
+							vsplit = 's',
+							split = 'i',
+							tabe = 't',
+							tabnew = 'r',
+							quit = 'q',
+							close = '<C-c>k',
+						},
+					},
+					definition = {
+						width = 0.9,
+						height = 0.5,
+						keys = {
+							edit = '<C-c>o',
+							vsplit = '<C-c>v',
+							split = '<C-c>i',
+							tabe = '<C-c>t',
+							quit = 'q',
+							close = '<C-c>k',
+						},
+					},
+					rename = {
+						in_select = true,
+						auto_save = false,
+						project_max_width = 0.5,
+						project_max_height = 0.5,
+						keys = {
+							quit = '<C-k>',
+							exec = '<CR>',
+							select = 'x',
+						},
+					},
+					symbol_in_winbar = {
+						enable = false,
+						separator = ' › ',
+						hide_keyword = false,
+						show_file = true,
+						folder_level = 1,
+						color_mode = true,
+						dely = 300,
+					},
+					outline = {
+						win_position = 'right',
+						win_width = 30,
+						auto_preview = true,
+						detail = true,
+						auto_close = true,
+						close_after_jump = false,
+						layout = 'normal',
+						max_height = 0.5,
+						left_width = 0.3,
+						keys = {
+							toggle_or_jump = 'o',
+							quit = 'q',
+							jump = 'e',
+						},
+					},
+					callhierarchy = {
+						layout = 'float',
+						left_width = 0.2,
+						keys = {
+							edit = 'e',
+							vsplit = 's',
+							split = 'i',
+							tabe = 't',
+							close = '<C-c>k',
+							quit = 'q',
+							shuttle = '[w',
+							toggle_or_req = 'u',
+						},
+					},
+					implement = {
+						enable = false,
+						sign = true,
+						lang = {},
+						virtual_text = true,
+						priority = 100,
+					},
+					beacon = {
+						enable = true,
+						frequency = 7,
+					},
+				}
+			end,
 		},
     -- }}} Lspsaga
 
@@ -855,6 +3169,7 @@ require("lazy").setup({
 
 		{
 			"NeogitOrg/neogit",
+			event=VeryLazy,
 			dependencies = {
 				"nvim-lua/plenary.nvim",         -- required
 				"sindrets/diffview.nvim",        -- optional - Diff integration
@@ -876,6 +3191,7 @@ require("lazy").setup({
 
 		{
 			'nvim-telescope/telescope.nvim',
+			lazy = false,
 			dependencies = {
 				'nvim-tree/nvim-web-devicons',
 				'nvim-lua/plenary.nvim',
@@ -905,6 +3221,8 @@ require("lazy").setup({
 				-- local finders = require 'telescope.finders'
 				-- local pickers = require 'telescope.pickers'
 				local actions_state = require 'telescope.actions.state'
+
+				---@diagnostic disable-next-line: unused-function
 				local function file_exists(filename)
 					local file = io.open(filename, 'r')
 					if file then
@@ -914,6 +3232,8 @@ require("lazy").setup({
 						return false
 					end
 				end
+
+				---@diagnostic disable-next-line: unused-local, unused-function
 				local function on_project_selected(prompt_bufnr)
 					local entry = actions_state.get_selected_entry()
 					print("Hello from project selected")
@@ -929,8 +3249,9 @@ require("lazy").setup({
           vim.cmd 'Neotree toggle'
           -- vim.cmd 'SidebarNvimToggle'
           vim.cmd 'wincmd l'
-	  vim.cmd('cd ' .. entry["value"])
+					vim.cmd('cd ' .. entry["value"])
         end
+
         require('telescope').setup {
           defaults = {
             mappings = {
@@ -966,9 +3287,9 @@ require("lazy").setup({
               search_by = 'title',
               sync_with_nvim_tree = true, -- default false
               -- default for on_project_selected = find project files
-              on_project_selected = function(prompt_bufnr)
-                on_project_selected(prompt_bufnr)
-              end,
+              -- on_project_selected = function(prompt_bufnr)
+              --   on_project_selected(prompt_bufnr)
+              -- end,
             },
           },
         }
@@ -1050,7 +3371,9 @@ require("lazy").setup({
 			config = function()
 				vim.g.slime_target = "neovim"
 			end,
-			keys = { { '<A-Return>', '<CMD>SlimeSendCurrentLine<CR>', desc = 'Send to REPL' } },
+			keys = {
+				{ '<A-Return>', '<CMD>SlimeSend<CR>', desc = 'Send to REPL', mode = {"v", "n"} }
+			},
 		},
 
     -- }}} nvim-slime
@@ -1080,10 +3403,107 @@ require("lazy").setup({
 					{ "<Space>h",  group = "Help" },
 					{ "<Space>y",  group = "Snippets" },
 					{ "<Space>z",  group = "Zen" },
+					{ "<Space><Return>",  group = "Make" },
 				})
 			end,
 		},
     -- }}} Which-key
+
+		-- {{{ Compiler.nvim
+
+		{ -- This plugin
+			"Zeioth/compiler.nvim",
+			cmd = {"CompilerOpen", "CompilerToggleResults", "CompilerRedo"},
+			dependencies = { "stevearc/overseer.nvim", "nvim-telescope/telescope.nvim" },
+			opts = {},
+			lazy = true,
+			keys = {
+				{ '<Space>c<Return>', '<CMD>CompilerOpen<CR>', desc = 'Compile' },
+				{ '<Space>cr', '<CMD>CompilerToggleResults<CR>', desc = 'Results' },
+				{ '<Space>cx', '<CMD>CompilerRedo<CR>', desc = 'Redo' },
+				{ '<Space>cd', '<CMD>CompilerStop<CR>', desc = 'Redo' },
+			},
+		},
+		{ -- The task runner we use
+			"stevearc/overseer.nvim",
+			commit = "6271cab7ccc4ca840faa93f54440ffae3a3918bd",
+			cmd = { "CompilerOpen", "CompilerToggleResults", "CompilerRedo" },
+			opts = {
+				task_list = {
+					direction = "bottom",
+					min_height = 25,
+					max_height = 25,
+					default_detail = 1
+				},
+			},
+		},
+
+		-- }}} Compiler.nvim
+
+		-- {{{ GP
+		{
+			"robitx/gp.nvim",
+			lazy = false,
+			config = function()
+				local conf = { }
+				require("gp").setup(conf)
+			end,
+			keys = {
+				{'<Space>L', '<CMD>GpChatToggle<CR>', desc = 'LLM'},
+			}
+			-- commands = { }
+		},
+		-- }}} GP
+
+		-- {{{ NvimTree
+		{
+			'kyazdani42/nvim-tree.lua',
+			dependencies = {
+				{
+					'b0o/nvim-tree-preview.lua',
+					dependencies = {
+						'nvim-lua/plenary.nvim',
+						'3rd/image.nvim', -- Optional, for previewing images
+					},
+				},
+			},
+			keys = {
+				{ '<Space>ff', '<CMD>NvimTreeToggle<CR>', desc = 'File Tree' },
+			},
+			config = function()
+				require('nvim-tree').setup {
+					on_attach = function(bufnr)
+						local api = require('nvim-tree.api')
+						-- Important: When you supply an `on_attach` function, nvim-tree won't
+						-- automatically set up the default keymaps. To set up the default keymaps,
+						-- call the `default_on_attach` function. See `:help nvim-tree-quickstart-custom-mappings`.
+						api.config.mappings.default_on_attach(bufnr)
+						local function opts(desc)
+							return { desc = 'nvim-tree: ' .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+						end
+						local preview = require('nvim-tree-preview')
+						vim.keymap.set('n', 'P', preview.watch, opts 'Preview (Watch)')
+						vim.keymap.set('n', '<Esc>', preview.unwatch, opts 'Close Preview/Unwatch')
+						vim.keymap.set('n', '<C-f>', function() return preview.scroll(4) end, opts 'Scroll Down')
+						vim.keymap.set('n', '<C-b>', function() return preview.scroll(-4) end, opts 'Scroll Up')
+						-- Option A: Smart tab behavior: Only preview files, expand/collapse directories (recommended)
+						vim.keymap.set('n', '<Tab>', function()
+							local ok, node = pcall(api.tree.get_node_under_cursor)
+							if ok and node then
+								if node.type == 'directory' then
+									api.node.open.edit()
+								else
+									preview.node(node, { toggle_focus = true })
+								end
+							end
+						end, opts 'Preview')
+						-- Option B: Simple tab behavior: Always preview
+						-- vim.keymap.set('n', '<Tab>', preview.node_under_cursor, opts 'Preview')
+					end,
+				}
+			end
+		},
+		-- }}} NvimTree
 
 	},
 
@@ -1100,12 +3520,38 @@ require("lazy").setup({
 
 -- {{{ Filetype configs
 
+
+-- {{{ C
+
+vim.api.nvim_create_autocmd("BufEnter", {
+	pattern = "*.c",
+	callback = function()
+		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+	end
+})
+
+-- }}} C
+
+-- {{{ lisp
+
+vim.api.nvim_create_autocmd("BufEnter", {
+	pattern = "*.lisp",
+	callback = function()
+		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+	end
+})
+
+-- }}} lisp
+
 -- {{{ Lua
 
 -- Lua ftconfig:
 vim.api.nvim_create_autocmd("BufEnter", {
 	pattern = "*.lua",
 	callback = function()
+		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+		mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
+		mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
 		-- print("Hello lua filetype")
 	end
 })
@@ -1137,8 +3583,35 @@ vim.api.nvim_create_autocmd("BufEnter", {
 
 -- }}} Javascript
 
--- }}} Filetype configs
+-- {{{ Go
 
+vim.api.nvim_create_autocmd("BufEnter", {
+	pattern = "*.go",
+	callback = function()
+		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+	end
+})
+
+-- }}} Javascript
+
+
+-- {{{ Go
+
+vim.api.nvim_create_autocmd("BufEnter", {
+	pattern = {"*.r", "*.R"},
+	callback = function()
+		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+		mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
+		mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
+	end
+})
+
+-- }}} Javascript
+
+
+
+-- }}} Filetype configs
 
 ---@diagnostic disable-next-line: unused-local
 local playround = require'playground'
+

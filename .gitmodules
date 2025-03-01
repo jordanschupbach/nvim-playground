@@ -1,0 +1,3 @@
+[submodule "plugins/mep-dash.nvim"]
+	path = plugins/mep-dash.nvim
+	url = git@github.com:jordanschupbach/mep-dash.nvim.git
