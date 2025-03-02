@@ -1,3 +1,3 @@
 default:
-	make -C language-playground/go/
+	make -C language-playground/c/
 

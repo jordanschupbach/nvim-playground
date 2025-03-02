@@ -83,7 +83,7 @@ M.toggle = function()
     if not M.menubar_win then
         create_menubar(M.opts.buttons)
     else
-        close_menubar() -- Close it safely
+        -- close_menubar() -- Close it safely
     end
 end
 

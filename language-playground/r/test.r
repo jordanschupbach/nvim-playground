@@ -1,7 +1,16 @@
 # Simple test to determine if R lsp is working
 
-pint("Hello, World!")
+print("Hello, World!")
 
 tmc::dark_mode()
-plot(1:10, 1:10)
+plot(runif(100, 0, 1), runif(100, 0, 1), pch = 20, xlab = "x", ylab = "y")
+
+# myfunction function
+#
+# What's your malfunction function??
+myfunction <- function() {
+  print("Hello world")
+}
+
+myfunction()
 
