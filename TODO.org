@@ -1,15 +1,11 @@
-* TODO Learn org captures in nvim
-* TODO Add a play button to heirline
-  SCHEDULED: <2025-03-02 Sun>
-* TODO Replace bookmarks.nvim
+* TODO Fix nvim-slime
+* TODO Learn (in depth) how to use orgmode
+** TODO Learn org captures in nvim
+** TODO Learn org features in nvim
+* TODO Learn (in depth) how to use codecompanion
+* DONE Add code companion
   :LOGBOOK:
-  CLOCK: [2025-03-01 Sat 19:13]--[2025-03-01 Sat 19:27] => 0:14
+  CLOCK: [2025-03-02 Sun 12:14]--[2025-03-02 Sun 13:19] => 1:05
   :END:
-  :LOGBOOK:
-  CLOCK: [2025-03-01 Sat 19:27]--[2025-03-01 Sat 19:36] => 0:09
-  :END:
-* TODO Write methods for proper active buffer highligting
-* TODO Add method to get currently running org-timer (and get time)
-* DONE Add custom groups for sidebar-nvim                              :ARCHIVE:
 
-* DONE Fix lua lspconfig to include config folders
+* DONE Add in org plugins like org-modern

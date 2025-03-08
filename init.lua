@@ -12,6 +12,7 @@ local function mymap(mode, key, value)
   vim.keymap.set(mode, key, value, { silent = true, remap = true })
 end
 
+---@diagnostic disable-next-line: unused-function, unused-local
 local function toggle_quickfix()
   if vim.fn.empty(vim.fn.getqflist()) == 1 then
     print("Quickfix list is empty!")
@@ -33,11 +34,12 @@ local function toggle_quickfix()
   end
 end
 
-vim.api.nvim_create_user_command('CToggle', toggle_quickfix, {})
+-- vim.api.nvim_create_user_command('CToggle', toggle_quickfix, {})
 
-mymap('n', '<Space>cc', '<CMD>CToggle<CR>')
+mymap('n', '<Space>cc', '<CMD>CodeCompanionActions<CR>')
+-- mymap('n', '<Space>cc', '<CMD>CToggle<CR>')
 mymap('n', '<Space>co', '<CMD>CToggle<CR>')
-mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+-- mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
 mymap('n', '<Space>mm', '<CMD>silent make<CR>')
 mymap('n', ']e', '<CMD>lua vim.diagnostic.goto_next()<CR>')
 mymap('n', '<Space>ht', '<CMD>Tutor<CR>')
@@ -81,9 +83,9 @@ mymap('t', '<Space>wk', '<CMD>wincmd k<CR>')
 mymap('n', '<A-S-k>', "<CMD>lua require('smart-splits').resize_up()<CR>")
 mymap('t', '<A-S-k>', "<CMD>lua require('smart-splits').resize_up()<CR>")
 mymap('n', '<A-S-->',
-	"<CMD>lua require('smart-splits').resize_up()<CR><CMD>lua require('smart-splits').resize_left()<CR>")
+  "<CMD>lua require('smart-splits').resize_up()<CR><CMD>lua require('smart-splits').resize_left()<CR>")
 mymap('n', '<A-S-=>',
-	"<CMD>lua require('smart-splits').resize_down()<CR><CMD>lua require('smart-splits').resize_right()<CR>")
+  "<CMD>lua require('smart-splits').resize_down()<CR><CMD>lua require('smart-splits').resize_right()<CR>")
 -- Split pane horizontal
 mymap('n', '<A-s>', '<CMD>split<CR>')
 mymap('n', '<Space>ws', '<CMD>split<CR>')
@@ -112,24 +114,28 @@ mymap('n', '<A-9>', ':tabn9<CR>')
 mymap('n', '<Space>qq', '<CMD>wa<CR><CMD>qa!<CR>')
 mymap('n', '<Space>rr', '<CMD>luafile $MYVIMRC<CR><CMD>ReloadFTPlugins<CR><CMD>echo "Reloaded config"<CR>')
 mymap('n', '<Space>tgc', '<CMD>Telescope git_commits<CR>')
-mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
-mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
+-- mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
+-- mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
 -- These only work in gvim.... :(
 mymap('n', '<C-tab>', '<CMD>tabnext<CR>')
 mymap('n', '<C-S-tab>', '<CMD>tabprevious<CR>')
 
 -- }}} Base Key mappings
 
+mymap('n', 'g:', '<CMD>term<CR>')
+mymap('n', '<C-A-return>', '<CMD>echo "TODO"<CR>')
+
 -- {{{ General Options
 
 -- {{{ Statusline active/not_active behavior
-vim.cmd('highlight StatusLine guifg=#FF33FF guibg=#00FFFFBB')    -- Active buffer colors
-vim.cmd('highlight StatusLineNC guifg=#888888 guibg=#000000')    -- Inactive buffer colors
+vim.cmd('highlight StatusLine guifg=#FF33FF guibg=#00FFFFBB')     -- Active buffer colors
+-- vim.cmd('highlight StatusLineNC guifg=#888888 guibg=#DFDFF1')     --  guibg=#000000'Inactive buffer colors
+vim.cmd('highlight StatusLineNC guifg=#888888 guibg=#000000')     --  guibg=#000000'Inactive buffer colors
 vim.cmd('highlight StatusLineActive guifg=#FF33FF guibg=#003366') -- Different color for active buffer
 
 -- Set highlight for window separators
-vim.cmd('highlight WinSeparatorActive guifg=#FF33FF')  -- Color for active window separator
-vim.cmd('highlight WinSeparatorNC guifg=#444444')      -- Color for inactive window separators
+vim.cmd('highlight WinSeparatorActive guifg=#FF33FF') -- Color for active window separator
+vim.cmd('highlight WinSeparatorNC guifg=#444444')     -- Color for inactive window separators
 
 -- Function to update all status lines and separators
 function UpdateAll()
@@ -152,13 +158,13 @@ end
 -- Autocommand to refresh status lines and separators on resize
 vim.api.nvim_create_autocmd("VimResized", { callback = UpdateAll })
 -- Autocommand to update status lines and separators on window focus changes
-vim.api.nvim_create_autocmd({"WinEnter", "BufEnter"}, { callback = UpdateAll })
-vim.api.nvim_create_autocmd({"WinLeave", "BufLeave"}, { callback = UpdateAll })
+vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, { callback = UpdateAll })
+vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, { callback = UpdateAll })
 
 -- Initial setup to set status lines and separators for all windows
 UpdateAll()
 
-vim.cmd('highlight EndOfBuffer guifg=#881188')  -- Customize color as needed
+vim.cmd('highlight EndOfBuffer guifg=#881188') -- Customize color as needed
 
 -- }}} Statusline active/not_active behavior
 
@@ -167,6 +173,7 @@ vim.opt.showtabline = 2
 vim.opt.tabstop = 2
 vim.opt.clipboard = 'unnamedplus'
 vim.g.slime_target = 'neovim'
+
 vim.g.mapleader = " "
 vim.g.maplocalleader = ";"
 
@@ -195,7 +202,16 @@ vim.opt.cursorline = true
 vim.opt.expandtab = true
 vim.opt.fileencoding = 'utf-8'
 -- vim.opt.fillchars = { horiz = '━', horizup = '┻', horizdown = '┳', vert = '┃', vertleft = '┫', vertright = '┣', verthoriz = '╋', }
-vim.opt.fillchars = { horiz = '━', horizup = '┻', horizdown = '┳', vert = '┃', vertleft = '┫', vertright = '┣', verthoriz = '╋', }
+vim.opt.fillchars = {
+  horiz = '━',
+  horizup = '┻',
+  horizdown = '┳',
+  vert = '┃',
+  vertleft = '┫',
+  vertright = '┣',
+  verthoriz =
+  '╋',
+}
 vim.opt.foldmethod = 'marker'
 vim.opt.formatoptions:append 'rn1'
 vim.opt.formatoptions:remove 'oa2'
@@ -240,11 +256,114 @@ vim.g['test#cpp#catch2#bin_dir'] = '../build/tests/'
 
 -- }}} General Options
 
+-- {{{ Utility functions
+
+
+---@diagnostic disable-next-line: lowercase-global
+function dump(o)
+  if type(o) == 'table' then
+    local s = '{ '
+    for k, v in pairs(o) do
+      if type(k) ~= 'number' then k = '"' .. k .. '"' end
+      s = s .. '[' .. k .. '] = ' .. dump(v) .. ','
+    end
+    return s .. '} '
+  else
+    return tostring(o)
+  end
+end
+
+---@diagnostic disable-next-line: lowercase-global
+read_file = function(path)
+  local file = io.open(path, "r") -- Open the file in read mode
+  if not file then
+    return nil, "Could not open file: " .. path
+  end
+  local content = file:read("*a") -- Read the entire file content
+  return content
+end
+
+---@diagnostic disable-next-line: lowercase-global
+function extract_time_points(input)
+  local start_time, end_time = input:match("CLOCK:%s*%[([^%]]+)%]%s*%-%-%s*%[([^%]]+)%]")
+  if not end_time then
+    start_time, end_time = input:match("CLOCK:%s*%[([^%]]+)%]")
+  end
+  return start_time, end_time
+end
+
+---@diagnostic disable-next-line: lowercase-global
+function parse_timers(content)
+  local content_tbl = {}
+  for line in string.gmatch(content, "[^\n]+") do
+    table.insert(content_tbl, line)
+  end
+  local found_open_timer = false
+  local task_text = ""
+  local time_diff_str = ""
+  for linum, line in ipairs(content_tbl) do
+    local tp1, tp2 = extract_time_points(line)
+    if tp1 and not tp2 then
+      found_open_timer = true
+      task_text = content_tbl[linum - 2]
+      local start_time_epoch = os.time({
+        year = tp1:sub(1, 4),
+        month = tp1:sub(6, 7),
+        day = tp1:sub(9, 10),
+        hour = tonumber(tp1:sub(16, 17)),
+        min = tonumber(tp1:sub(19, 21))
+      })
+      local current_time = os.time()
+      local time_diff = current_time - start_time_epoch
+      if time_diff < 60 then
+        time_diff_str = time_diff .. "s"
+      else
+        time_diff_str = math.floor(time_diff / 60) .. "min"
+      end
+      return found_open_timer, task_text, time_diff_str
+    end
+  end
+  return found_open_timer, task_text, time_diff_str
+end
+
+---@diagnostic disable-next-line: lowercase-global
+function locate_org_files(directories)
+  local ret = {}
+  local files = {}
+  for _, dir in ipairs(directories) do
+    files = vim.fn.globpath(dir, '*.org', false, true)
+    if #files > 0 then
+      for _, file in ipairs(files) do
+        table.insert(ret, file)
+      end
+    end
+  end
+  return ret
+end
+
+---@diagnostic disable-next-line: lowercase-global
+get_running_timer_text = function(folders)
+  local org_files = locate_org_files(folders)
+  for _, file in ipairs(org_files) do
+    local content = read_file(file)
+    if content then
+      local found_timer, task_text, time_diff = parse_timers(content)
+      if found_timer then
+        return "Current Task: " .. task_text:sub(8, #task_text) .. " (" .. time_diff .. ")"
+      end
+    end
+  end
+  return "No current task"
+end
+
+
+-- }}} Utility functions
+
 -- {{{ User Commands
 
 -- Prototype (example) hello world command
 vim.api.nvim_create_user_command('SayHello', function()
-	require 'playground'.hello_world()
+  require 'playground'.hello_world()
 end, {})
 -- Command to reload FTPlugins for dev purposes
 
@@ -256,17 +375,17 @@ vim.api.nvim_create_user_command('ReloadFTPlugins', 'execute "source" glob($MYVI
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
-	local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-	local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
-	if vim.v.shell_error ~= 0 then
-		vim.api.nvim_echo({
-			{ "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-			{ out,                            "WarningMsg" },
-			{ "\nPress any key to exit..." },
-		}, true, {})
-		vim.fn.getchar()
-		os.exit(1)
-	end
+  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+      { out,                            "WarningMsg" },
+      { "\nPress any key to exit..." },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
 end
 vim.opt.rtp:prepend(lazypath)
 
@@ -284,18 +403,18 @@ local mycolors = {
 
   -- Greens
   pastelOliveCreed = '#e5edc4', -- #e5edc4 Pantone 2309C
-  energos = '#cded49', -- #cded49 Pantone 380C
-  jazzercise = '#bde225', --#bde225 Pantone 2290C
-  indiaGreen = '#1c890a', -- Pantone 2424C
-  appleIiLime = '#28d10c', -- Pantone
+  energos = '#cded49',          -- #cded49 Pantone 380C
+  jazzercise = '#bde225',       --#bde225 Pantone 2290C
+  indiaGreen = '#1c890a',       -- Pantone 2424C
+  appleIiLime = '#28d10c',      -- Pantone
 
   -- Greys
   pigIron = '#484747',
 
   -- Blacks
   midnightBlack = '#000000', -- Pantone Black 3c
-  underworld = '#1f211c', -- Pantone Black 3c
-  velvetBlack = '#1d1818', -- Pantone Neutral Black C
+  underworld = '#1f211c',    -- Pantone Black 3c
+  velvetBlack = '#1d1818',   -- Pantone Neutral Black C
 
   -- Yellows
   sizzlingSunrise = '#fedb00', -- Pantone 108C
@@ -304,32 +423,32 @@ local mycolors = {
   pastelFirstSnow = '#e2ebf7', -- #e2ebf7 Pantone 2707C
   vibrantMint = '#02fce3',
   bluePartyParrot = '#7b7eff', -- Pantone 292C
-  palatinateBlue = '#3845df', -- Pantone 2727C
+  palatinateBlue = '#3845df',  -- Pantone 2727C
 
   -- Oranges
   lightSalmon = '#ffa47b', -- #ffa47b Pantone 7410C
   phillipineOrange = '#ff7300',
 
   -- Browns
-  moussaka = '#6f3014', -- Pantone 732C
-  donJuan = '#594e4e', -- Pantone 411C
-  matterhorn = '#574e4e', -- Pantone 411C
-  chinotto = '#564949', -- Pantone 438C
-  rhodoniteBrown = '#4c4141', -- Pantone 438C
+  moussaka = '#6f3014',          -- Pantone 732C
+  donJuan = '#594e4e',           -- Pantone 411C
+  matterhorn = '#574e4e',        -- Pantone 411C
+  chinotto = '#564949',          -- Pantone 438C
+  rhodoniteBrown = '#4c4141',    -- Pantone 438C
   smokedBlackCoffee = '#3e3333', -- Pantone 439C
-  chocolatePlum = '#3c2e2e', -- #3c2e2e Pantone 440C
+  chocolatePlum = '#3c2e2e',     -- #3c2e2e Pantone 440C
 
   -- Pinks
-  munchOnMelon = '#f23f72', -- Pantone 191C
+  munchOnMelon = '#f23f72',    -- Pantone 191C
   crumblyLipstick = '#ef6abf', -- Pantone 224C
 
   -- Purples
-  plasmaTrail = '#cd95fa', -- Pantone 2717 C
-  crashPink = '#cd88fd', -- #cd88fd Pantone 2717C
-  piscesVividAmethyst = '#a753ec', -- Pantone 265C
-  veronica = '#9715ff', -- Pantone 2592C
+  plasmaTrail = '#cd95fa',          -- Pantone 2717 C
+  crashPink = '#cd88fd',            -- #cd88fd Pantone 2717C
+  piscesVividAmethyst = '#a753ec',  -- Pantone 265C
+  veronica = '#9715ff',             -- Pantone 2592C
   eineKleineNachtmusik = '#4f1f91', -- Pantone 267C
-  middleRedPurple = '#230839', -- Pantone 2627 C
+  middleRedPurple = '#230839',      -- Pantone 2627 C
 }
 -- }}} mycolors
 
@@ -341,7 +460,70 @@ local mycolors = {
 require("lazy").setup({
   spec = {
 
-    -- bookmarks
+
+    -- {{{ CodeCompanion
+    {
+      "olimorris/codecompanion.nvim",
+      config = true,
+      dependencies = {
+        "nvim-lua/plenary.nvim",
+        "nvim-treesitter/nvim-treesitter",
+      },
+    },
+    -- }}} CodeCompanion
+
+    -- {{{ Noice
+    {
+      "folke/noice.nvim",
+      event = "VeryLazy",
+      opts = {
+        command_palette = true,
+        lsp = {
+          progress = {
+            enabled = false,
+            -- add any options here
+          },
+        },
+        messages = {
+          -- NOTE: If you enable messages, then the cmdline is enabled automatically.
+          -- This is a current Neovim limitation.
+          enabled = false,             -- enables the Noice messages UI
+          view = "notify",             -- default view for messages
+          view_error = "notify",       -- view for errors
+          view_warn = "notify",        -- view for warnings
+          view_history = "messages",   -- view for :messages
+          view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
+        },
+        -- :Noice errors
+        errors = {
+          -- options for the message history that you get with `:Noice`
+          view = "popup",
+          opts = { enter = true, format = "details" },
+          filter = { error = true },
+          filter_opts = { reverse = true },
+        },
+      },
+      dependencies = {
+        -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+        "MunifTanjim/nui.nvim",
+        -- OPTIONAL:
+        --   `nvim-notify` is only needed, if you want to use the notification view.
+        --   If not available, we use `mini` as the fallback
+        "rcarriga/nvim-notify",
+      }
+    },
+    -- }}} Noice
+    -- {{{ Luadev
+    {
+      'bfredl/nvim-luadev',
+      config = function()
+        vim.api.nvim_set_keymap('n', '<Leader>r', '<Plug>(Luadev-Run)', { noremap = false, silent = true })      -- Execute Lua code
+        vim.api.nvim_set_keymap('n', '<Leader>rl', '<Plug>(Luadev-RunLine)', { noremap = false, silent = true }) -- Execute current line
+        vim.api.nvim_set_keymap('n', '<Leader>rw', '<Plug>(Luadev-RunWord)', { noremap = false, silent = true }) -- Evaluate word
+        vim.api.nvim_set_keymap('i', '<C-Space>', '<Plug>(Luadev-Complete)', { noremap = false, silent = true }) -- Complete Lua fields
+      end
+    },
+    -- }}} Luadev
 
     -- {{{ todo comments
 
@@ -358,205 +540,300 @@ require("lazy").setup({
     -- {{{ heirline
 
     {
-        "rebelot/heirline.nvim",
-        -- You can optionally lazy-load heirline on UiEnter
-        -- to make sure all required plugins and colorschemes are loaded before setup
-        -- event = "UiEnter",
-        config = function()
+      "rebelot/heirline.nvim",
+      -- You can optionally lazy-load heirline on UiEnter
+      -- to make sure all required plugins and colorschemes are loaded before setup
+      -- event = "UiEnter",
+      config = function()
+        local conditions = require 'heirline.conditions'
+        local utils = require 'heirline.utils'
 
-          local conditions = require 'heirline.conditions'
-          local utils = require 'heirline.utils'
+        local Align = { provider = '%=' }
 
-    local Align = { provider = '%=' }
-
-          -- {{{ Utility functions
-          local function filepath_to_filename(filepath)
-            if filepath == nil then
-              return nil
-            end
-            local separator = package.config:sub(1, 1) -- Get the platform-specific directory separator
-            local parts = {}
-            for part in string.gmatch(filepath, '[^' .. separator .. ']+') do
-              table.insert(parts, part)
-            end
-            return parts[#parts] -- Return the last part (the filename)
+        -- {{{ Utility functions
+        local function filepath_to_filename(filepath)
+          if filepath == nil then
+            return nil
           end
+          local separator = package.config:sub(1, 1) -- Get the platform-specific directory separator
+          local parts = {}
+          for part in string.gmatch(filepath, '[^' .. separator .. ']+') do
+            table.insert(parts, part)
+          end
+          return parts[#parts] -- Return the last part (the filename)
+        end
 
-          local function bufs_in_tab(tabpage)
-            tabpage = tabpage or 0
-            local buf_set = {}
-            local success, wins = pcall(vim.api.nvim_tabpage_list_wins, tabpage)
-            if success then
-              for _, winid in ipairs(wins) do
-                local bufnr = vim.api.nvim_win_get_buf(winid)
-                buf_set[bufnr] = true
-              end
-              return buf_set
+        local function bufs_in_tab(tabpage)
+          tabpage = tabpage or 0
+          local buf_set = {}
+          local success, wins = pcall(vim.api.nvim_tabpage_list_wins, tabpage)
+          if success then
+            for _, winid in ipairs(wins) do
+              local bufnr = vim.api.nvim_win_get_buf(winid)
+              buf_set[bufnr] = true
+            end
+            return buf_set
+          else
+            return { 1 }
+          end
+        end
+
+        local function get_first_key(table)
+          for key, _ in pairs(table) do
+            return key
+          end
+        end
+
+        -- }}} Utility functions
+
+        -- {{{ Task
+
+
+        ---@diagnostic disable-next-line: unused-local
+        local Task = {
+          init = function()
+            -- do nothing
+          end,
+          provider = function()
+            local timer_text = get_running_timer_text({
+              -- '~/orgfiles/**',
+              -- '~/orgfiles/**/*',
+              -- '~/dev/CHARM-3.0/**',
+              -- '~/dev/charm/',
+              '~/dev/templates/**/*',
+              '~/.config/nvim-playground/**',
+              -- '~/papers/tmc/**'
+            })
+            -- local timer_text = "Current Task: "
+            return timer_text
+          end,
+          update = 'CursorMoved',
+        }
+
+        --}}} Task
+
+
+        -- {{{ PlayButton
+        local PlayButton = {
+          -- require('nvim-web-devicons').get_icon()
+          on_click = {
+            callback = function()
+              vim.cmd("CompilerOpen")
+            end,
+            name = 'PlayButton',
+          },
+          init = function(self)
+            local filename = self.filename
+            local extension = vim.fn.fnamemodify(filename, ':e')
+            self.icon, self.icon_color =
+                require('nvim-web-devicons').get_icon_color(filename, extension, { default = true })
+          end,
+          provider = function()
+            return ''
+          end,
+          hl = function()
+            return { fg = mycolors.appleIiLime, underline = true }
+          end,
+        }
+        -- }}} PlayButton
+
+
+        -- {{{ Space
+        local Space = {
+          -- require('nvim-web-devicons').get_icon()
+          provider = function()
+            return ' '
+          end,
+          hl = function()
+            return { fg = mycolors.donJuan }
+          end,
+        }
+        -- }}} Space
+
+        -- {{{ Plain
+
+        local Plain = {
+          init = function(self)
+            self.width = vim.fn.winwidth(vim.api.nvim_get_current_win())
+          end,
+          provider = function(self)
+            -- local timer_text = get_running_timer_text({
+            --     '~/orgfiles/**',
+            --     '~/orgfiles/**/*',
+            --     '~/dev/**/*',
+            --     '~/.config/nvim-playground/**'
+            -- })
+            -- local timer_length = #timer_text
+            -- if timer_length > self.width then
+            --     timer_text = timer_text:sub(1, self.width)
+            --     timer_length = self.width
+            -- end
+            -- local result_string = string.rep("─", self.width - timer_length - 5) .. " " .. timer_text .. " ───"
+            -- return result_string
+            return string.rep("─", self.width)
+          end,
+        }
+
+        local PlainInactive = {
+          init = function(self)
+            self.width = vim.fn.winwidth(vim.api.nvim_get_current_win())
+          end,
+          provider = function(self)
+            return string.rep("─", self.width)
+          end,
+        }
+
+
+
+
+        -- }}} Plain
+
+        -- {{{ Tabpage
+
+        local Tabpage = {
+          provider = function(self)
+            local bufnr = bufs_in_tab(self.tabpage)
+            local filestring = filepath_to_filename(vim.fn.bufname(get_first_key(bufnr)))
+            if filestring == nil then
+              filestring = '[No Name]'
+            end
+            return '' .. '' .. filestring .. ' '
+          end,
+          hl = function(self)
+            if not self.is_active then
+              return 'TabLine'
             else
-              return { 1 }
+              return 'TabLineSel'
             end
-          end
+          end,
+          update = 'CursorMoved',
+        }
 
-          local function get_first_key(table)
-            for key, _ in pairs(table) do
-              return key
+        local TabpageClose = {
+          provider = '%999X  %X',
+          hl = 'TabLine',
+        }
+
+        local TabPages = {
+          -- only show this component if there's 2 or more tabpages
+          condition = function()
+            return #vim.api.nvim_list_tabpages() >= 2
+          end,
+          -- { provider = "%=" },
+          utils.make_tablist(Tabpage),
+          TabpageClose,
+        }
+
+        -- }}} Tabpage
+
+        -- {{{ Tabline
+        local Tabline = {
+          { TabPages },
+          { Align },
+          { Task },
+          { Align },
+          { PlayButton },
+          { Space },
+          { Space },
+          { Space },
+        }
+        -- }}} Tabline
+
+        -- {{{ Statuslines
+        local DefaultStatusLine = {
+          Plain,
+        }
+
+        local InactiveStatusline = {
+          condition = conditions.is_not_active,
+          PlainInactive,
+        }
+
+
+        local StatusLines = {
+          hl = function()
+            if conditions.is_active() then
+              return 'StatusLine'
+            else
+              return 'StatusLineNC'
             end
-          end
+          end,
+          -- the first statusline with no condition, or which condition returns true is used.
+          -- think of it as a switch case with breaks to stop fallthrough.
+          fallthrough = false,
+          InactiveStatusline,
+          DefaultStatusLine,
+        }
+        -- }}} Statuslines
 
-          -- }}} Utility functions
-
-          -- {{{ Plain
-
-
-          local Plain = {
-            -- get vim current mode, this information will be required by the provider
-            -- and the highlight functions, so we compute it only once per component
-            -- evaluation and store it as a component attribute
-            init = function(self)
-              self.width = vim.fn.winwidth(vim.api.nvim_get_current_win())
-            end,
-            provider = function(self)
-              return string.rep("─", self.width)
-            end,
-            -- Same goes for the highlight. Now the foreground will change according to the current mode.
-            -- hl = function(self)
-            --   -- local mode = self.mode:sub(1, 1)       -- get only the first mode character
-            --   -- return { fg = self.mode_colors[mode], bold = true, }
-            -- end,
-            -- -- Re-evaluate the component only on ModeChanged event!
-            -- -- Also allows the statusline to be re-evaluated when entering operator-pending mode
-            -- update = {
-            --   "ModeChanged", -- window resize events
-            --   pattern = "*:*",
-            --   callback = vim.schedule_wrap(function()
-            --     vim.cmd("redrawstatus")
-            --   end),
-            -- },
-          }
-
-
-          -- }}} Plain
-
-    -- {{{ Tabpage
-
-    local Tabpage = {
-      provider = function(self)
-        local bufnr = bufs_in_tab(self.tabpage)
-        local filestring = filepath_to_filename(vim.fn.bufname(get_first_key(bufnr)))
-        if filestring == nil then
-          filestring = '[No Name]'
-        end
-        return '' .. '' .. filestring .. ' '
-      end,
-      hl = function(self)
-        if not self.is_active then
-          return 'TabLine'
-        else
-          return 'TabLineSel'
-        end
-      end,
-      update = 'CursorMoved',
-    }
-
-    local TabpageClose = {
-      provider = '%999X  %X',
-      hl = 'TabLine',
-    }
-
-    local TabPages = {
-      -- only show this component if there's 2 or more tabpages
-      condition = function()
-        return #vim.api.nvim_list_tabpages() >= 2
-      end,
-      -- { provider = "%=" },
-      utils.make_tablist(Tabpage),
-      TabpageClose,
-    }
-
-    -- }}} Tabpage
-
-          local Tabline = {
-            { Align },
-            { TabPages },
-            { Align },
-          }
-
-          local DefaultStatusLine = {
-            Plain,
-          }
-
-          local InactiveStatusline = {
-            condition = conditions.is_not_active,
-            Plain,
-            -- FileType,
-            -- Space,
-            -- FileName,
-            -- Align,
-          }
-
-
-          local StatusLines = {
-            hl = function()
-              if conditions.is_active() then
-                return 'StatusLine'
-              else
-                return 'StatusLineNC'
-              end
-            end,
-            -- the first statusline with no condition, or which condition returns true is used.
-            -- think of it as a switch case with breaks to stop fallthrough.
-            fallthrough = false,
-            -- SpecialStatusline,
-            -- TerminalStatusline,
-            InactiveStatusline,
-            DefaultStatusLine,
-          }
-
-
-          require("heirline").setup({
-              statusline = StatusLines,
-              tabline = Tabline,
-          })
-        end
+        require("heirline").setup({
+          statusline = StatusLines,
+          tabline = Tabline,
+        })
+      end
     },
 
     -- }}} heirline
 
     -- {{{ Bookmarks
-    {
-      'tomasky/bookmarks.nvim',
-      config = function()
-        require('bookmarks').setup {
-          -- sign_priority = 8,  --set bookmark sign priority to cover other sign
-          save_file = vim.fn.expand "$HOME/.bookmarks", -- bookmarks save file path
-          keywords =  {
-            ["@t"] = "☑️ ", -- mark annotation startswith @t ,signs this icon as `Todo`
-            ["@w"] = "⚠️ ", -- mark annotation startswith @w ,signs this icon as `Warn`
-            ["@f"] = "⛏ ", -- mark annotation startswith @f ,signs this icon as `Fix`
-            ["@n"] = " ", -- mark annotation startswith @n ,signs this icon as `Note`
-          },
-          ---@diagnostic disable-next-line: unused-local
-          on_attach = function(bufnr)
-            local bm = require "bookmarks"
-            local map = vim.keymap.set
-            map("n","mm",bm.bookmark_toggle) -- add or remove bookmark at current line
-            map("n","mi",bm.bookmark_ann) -- add or edit mark annotation at current line
-            map("n","mc",bm.bookmark_clean) -- clean all marks in local buffer
-            map("n","mn",bm.bookmark_next) -- jump to next mark in local buffer
-            map("n","mp",bm.bookmark_prev) -- jump to previous mark in local buffer
-            map("n","ml",bm.bookmark_list) -- show marked file list in quickfix window
-            map("n","mx",bm.bookmark_clear_all) -- removes all bookmarks
-          end
-        }
-      end
+    -- {
+    --   'tomasky/bookmarks.nvim',
+    --   config = function()
+    --     require('bookmarks').setup {
+    --       -- sign_priority = 8,  --set bookmark sign priority to cover other sign
+    --       save_file = vim.fn.expand "$HOME/.bookmarks", -- bookmarks save file path
+    --       keywords =  {
+    --         ["@t"] = "☑️ ", -- mark annotation startswith @t ,signs this icon as `Todo`
+    --         ["@w"] = "⚠️ ", -- mark annotation startswith @w ,signs this icon as `Warn`
+    --         ["@f"] = "⛏ ", -- mark annotation startswith @f ,signs this icon as `Fix`
+    --         ["@n"] = " ", -- mark annotation startswith @n ,signs this icon as `Note`
+    --       },
+    --       ---@diagnostic disable-next-line: unused-local
+    --       on_attach = function(bufnr)
+    --         local bm = require "bookmarks"
+    --         local map = vim.keymap.set
+    --         map("n","mm",bm.bookmark_toggle) -- add or remove bookmark at current line
+    --         map("n","mi",bm.bookmark_ann) -- add or edit mark annotation at current line
+    --         map("n","mc",bm.bookmark_clean) -- clean all marks in local buffer
+    --         map("n","mn",bm.bookmark_next) -- jump to next mark in local buffer
+    --         map("n","mp",bm.bookmark_prev) -- jump to previous mark in local buffer
+    --         map("n","ml",bm.bookmark_list) -- show marked file list in quickfix window
+    --         map("n","mx",bm.bookmark_clear_all) -- removes all bookmarks
+    --       end
+    --     }
+    --   end
+    --
+    --   -- tag = 'release' -- To use the latest release
+    -- },
 
-      -- tag = 'release' -- To use the latest release
+
+
+
+    {
+      "LintaoAmons/bookmarks.nvim",
+      -- pin the plugin at specific version for stability
+      -- backup your bookmark sqlite db when there are breaking changes
+      -- tag = "v2.3.0",
+      dependencies = {
+        { "kkharji/sqlite.lua" },
+        { "nvim-telescope/telescope.nvim" },
+        { "stevearc/dressing.nvim" } -- optional: better UI
+      },
+      config = function()
+        local opts = {}                  -- check the "./lua/bookmarks/default-config.lua" file for all the options
+        require("bookmarks").setup(opts) -- you must call setup to init sqlite db
+      end,
     },
+
+
+
+
     -- }}} Bookmarks
 
     -- {{{ Sidebar
 
-    {'sidebar-nvim/sidebar.nvim',
+    {
+      'sidebar-nvim/sidebar.nvim',
       dependencies = {
         'nvim-tree/nvim-web-devicons',
       },
@@ -570,9 +847,9 @@ require("lazy").setup({
           initial_width = 35,
           hide_statusline = false,
           update_interval = 1000,
-          sections = { "todos", "diagnostics"},
-          section_separator = {"", "-----", ""},
-          section_title_separator = {""},
+          sections = { "todos", "diagnostics" },
+          section_separator = { "", "-----", "" },
+          section_title_separator = { "" },
           containers = {
             attach_shell = "/bin/sh", show_all = true, interval = 5000,
           },
@@ -582,7 +859,7 @@ require("lazy").setup({
         require('sidebar-nvim').setup(opts)
       end,
       keys = {
-        {'<Space>ll', '<CMD>SidebarNvimToggle<CR>', desc = 'Toggle Sidebar'},
+        { '<Space>ll', '<CMD>SidebarNvimToggle<CR>', desc = 'Toggle Sidebar' },
       }
     },
 
@@ -592,8 +869,7 @@ require("lazy").setup({
     {
       'ldelossa/nvim-ide',
       lazy = false,
-      config = function ()
-
+      config = function()
         -- local bufferlist      = require('ide.components.bufferlist')
         local explorer        = require('ide.components.explorer')
         local outline         = require('ide.components.outline')
@@ -605,12 +881,9 @@ require("lazy").setup({
         local commits         = require('ide.components.commits')
         local branches        = require('ide.components.branches')
         local bookmarks       = require('ide.components.bookmarks')
-
-
-        local opts = {
-
+        local opts            = {
           components = {
-            global_keymaps = { },
+            global_keymaps = {},
             Explorer = {
               show_file_permissions = false,
               -- keymaps = {
@@ -618,7 +891,6 @@ require("lazy").setup({
               -- }
             }
           },
-
           panels = {
             left = "explorer",
             right = "info"
@@ -636,7 +908,7 @@ require("lazy").setup({
         require('ide').setup(opts)
       end,
       keys = {
-        {'<Space>ff', '<CMD>Workspace LeftPanelToggle<CR>', desc = "Left Sidebar (files)"},
+        { '<Space>ff', '<CMD>Workspace LeftPanelToggle<CR>', desc = "Left Sidebar (files)" },
       },
     },
     -- }}} Nvim-ide
@@ -686,24 +958,59 @@ require("lazy").setup({
     -- {{{ Orgmode
     {
       'nvim-orgmode/orgmode',
+      dependencies = {
+        -- https://github.com/danilshvalov/org-modern.nvim
+        "danilshvalov/org-modern.nvim",
+      },
       event = 'VeryLazy',
       ft = { 'org' },
       config = function()
-        -- Setup orgmode
-        require('orgmode').setup({
+        local Menu = require("org-modern.menu")
+
+        require("orgmode").setup({
           org_agenda_files = {
             '~/orgfiles/**/*',
-            '~/dev/**/*',
+            -- '~/dev/**/*',
             '~/.config/nvim-playground/*',
           },
           org_default_notes_file = '~/orgfiles/refile.org',
+          ui = {
+            menu = {
+              ---@diagnostic disable-next-line: redundant-parameter
+              handler = function(data)
+                Menu:new({
+                  window = {
+                    margin = { 1, 0, 1, 0 },
+                    padding = { 0, 1, 0, 1 },
+                    title_pos = "center",
+                    border = "single",
+                    zindex = 1000,
+                  },
+                  icons = {
+                    separator = "➜",
+                  },
+                }):open(data)
+              end,
+            },
+          },
         })
-        -- If using nvim-treesitter with ~ensure_installed = "all"~ option add ~org~ to ignore_install
-        -- require('nvim-treesitter.configs').setup({
-        --   ensure_installed = 'all',
-        --   ignore_install = { 'org' },
+
+
+        -- require('orgmode').setup({
+        --   org_agenda_files = {
+        --     '~/orgfiles/**/*',
+        --     '~/dev/**/*',
+        --     '~/.config/nvim-playground/*',
+        --   },
+        --   org_default_notes_file = '~/orgfiles/refile.org',
         -- })
       end,
+      keys = {
+        { '<leader>oci', "<CMD>lua require('orgmode').clock:org_clock_in()<CR>",  desc = "Clock in" },
+        { '<leader>oco', "<CMD>lua require('orgmode').clock:org_clock_out()<CR>", desc = "Clock out" },
+        { '<leader>ci',  "<CMD>lua require('orgmode').clock:org_clock_in()<CR>",  desc = "Clock in" },
+        { '<leader>co',  "<CMD>lua require('orgmode').clock:org_clock_out()<CR>", desc = "Clock out" },
+      },
     },
     -- }}} Orgmode
 
@@ -722,13 +1029,14 @@ require("lazy").setup({
     -- }}} Flash.nvim
 
     -- {{{ AsyncRun
-    { 'skywind3000/asyncrun.vim',
+    {
+      'skywind3000/asyncrun.vim',
       lazy = false,
       keys = {
-        {'<A-S-Return>', '<CMD>AsyncRun make<CR>', desc = "Run make"},
-        {'<Space><Return>', '<CMD>AsyncRun make<CR>', desc = "Run Make"},
+        { '<A-S-Return>',    '<CMD>AsyncRun make<CR>', desc = "Run make" },
+        { '<Space><Return>', '<CMD>AsyncRun make<CR>', desc = "Run Make" },
       },
-  },
+    },
     -- }}} AsyncRun
 
     -- {{{ fzf
@@ -958,6 +1266,7 @@ require("lazy").setup({
           ghost_text = { enabled = true },
         },
         sources = {
+          per_filetype = { codecompanion = { "codecompanion" }, },
           default = { 'lazydev', 'lsp', 'path', 'snippets', 'buffer' }, -- , 'emoji'
           providers = {
             -- emoji = {
@@ -1053,7 +1362,7 @@ require("lazy").setup({
             untracked    = { text = '┆' },
           },
           signs_staged_enable          = true,
-          signcolumn                   = true, -- Toggle with `:Gitsigns toggle_signs`
+          signcolumn                   = true,  -- Toggle with `:Gitsigns toggle_signs`
           numhl                        = false, -- Toggle with `:Gitsigns toggle_numhl`
           linehl                       = false, -- Toggle with `:Gitsigns toggle_linehl`
           word_diff                    = false, -- Toggle with `:Gitsigns toggle_word_diff`
@@ -1074,7 +1383,7 @@ require("lazy").setup({
           current_line_blame_formatter = '<author>, <author_time:%R> - <summary>',
           sign_priority                = 6,
           update_debounce              = 100,
-          status_formatter             = nil, -- Use default
+          status_formatter             = nil,   -- Use default
           max_file_length              = 40000, -- Disable if file is longer than this (in lines)
           preview_config               = {
             -- Options passed to nvim_open_win
@@ -1179,10 +1488,10 @@ require("lazy").setup({
       lazy = false,
       dependencies = { "williamboman/mason.nvim", },
       config = function()
-
         local function get_lua_files_from_config()
           local lua_files = {}
-          local config_dir = "/home/jordan/.config/nvim-playground/" -- vim.fn.stdpath('config') .. '/lua' -- Assumes ~/.config/nvim/lua
+          local config_dir =
+          "/home/jordan/.config/nvim-playground/" -- vim.fn.stdpath('config') .. '/lua' -- Assumes ~/.config/nvim/lua
           local function recursive_gather(dir)
             local items = vim.fn.globpath(dir, '*', false, true)
             for _, item in ipairs(items) do
@@ -1209,6 +1518,9 @@ require("lazy").setup({
             cmd = { 'R', '--slave', '-e', "options(lintr = list(trailing_blank_lines_linter = NULL, snake_case_linter = NULL)); languageserver::run()" },
             filetypes = { 'R', 'r', 'rmd', 'Rmd' },
           },
+          cmakelang = {},
+          cmake_language_server = {},
+          cmake = {},
           clangd = {},
           ts_ls = {},
           lua_ls = {
@@ -1250,6 +1562,9 @@ require("lazy").setup({
             single_file_support = true,
           },
           ts_ls = {},
+          cmake_language_server = {},
+          cmakelang = {},
+          cmake = {},
           jdtls = {},
           tsserver = {},
           phpactor = {},
@@ -1296,7 +1611,7 @@ require("lazy").setup({
         capabilities = require('blink.cmp').get_lsp_capabilities(capabilities)
         local mason_lspconfig = require 'mason-lspconfig'
         mason_lspconfig.setup {
-          automatic_installation = false,
+          automatic_installation = true,
           ensure_installed = vim.tbl_keys(ensured_servers),
         }
         mason_lspconfig.setup_handlers {
@@ -1316,7 +1631,7 @@ require("lazy").setup({
         "williamboman/mason.nvim",
         "williamboman/mason-lspconfig.nvim",
       },
-      command = { "Mason" }
+      -- command = { "Mason" }
     },
     -- }}} Mason / LspConfig
 
@@ -1351,7 +1666,7 @@ require("lazy").setup({
         "MunifTanjim/nui.nvim",
         -- {"3rd/image.nvim", opts = {}}, -- Optional image support in preview window: See `# Preview Mode` for more information
       },
-      lazy = true,
+      lazy = false,
       keys = {
         -- { '<Space>ff', '<CMD>Neotree toggle<CR>', desc = 'File Tree' },
       },
@@ -1399,6 +1714,56 @@ require("lazy").setup({
       end,
     },
 
+    {
+      "nvim-treesitter/nvim-treesitter-textobjects",
+      lazy = false,
+      dependencies = "nvim-treesitter/nvim-treesitter",
+      config = function()
+        require 'nvim-treesitter.configs'.setup {
+          textobjects = {
+            select = {
+              enable = true,
+              -- Automatically jump forward to textobj, similar to targets.vim
+              lookahead = true,
+              keymaps = {
+                -- You can use the capture groups defined in textobjects.scm
+                ["af"] = "@function.outer",
+                ["if"] = "@function.inner",
+                ["ac"] = "@class.outer",
+                -- You can optionally set descriptions to the mappings (used in the desc parameter of
+                -- nvim_buf_set_keymap) which plugins like which-key display
+                ["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
+                -- You can also use captures from other query groups like `locals.scm`
+                ["as"] = { query = "@local.scope", query_group = "locals", desc = "Select language scope" },
+              },
+              -- You can choose the select mode (default is charwise 'v')
+              --
+              -- Can also be a function which gets passed a table with the keys
+              -- * query_string: eg '@function.inner'
+              -- * method: eg 'v' or 'o'
+              -- and should return the mode ('v', 'V', or '<c-v>') or a table
+              -- mapping query_strings to modes.
+              selection_modes = {
+                ['@parameter.outer'] = 'v', -- charwise
+                ['@function.outer'] = 'V',  -- linewise
+                ['@class.outer'] = '<c-v>', -- blockwise
+              },
+              -- If you set this to `true` (default is `false`) then any textobject is
+              -- extended to include preceding or succeeding whitespace. Succeeding
+              -- whitespace has priority in order to act similarly to eg the built-in
+              -- `ap`.
+              --
+              -- Can also be a function which gets passed a table with the keys
+              -- * query_string: eg '@function.inner'
+              -- * selection_mode: eg 'v'
+              -- and should return true or false
+              include_surrounding_whitespace = true,
+            },
+          },
+        }
+      end
+    },
+
 
     -- }}} Treesitter
 
@@ -1406,10 +1771,10 @@ require("lazy").setup({
 
     {
       'nvimdev/lspsaga.nvim',
-      lazy = true,
+      lazy = false,
       dependencies = {
         'nvim-treesitter/nvim-treesitter', -- optional
-        'nvim-tree/nvim-web-devicons', -- optional
+        'nvim-tree/nvim-web-devicons',     -- optional
       },
       keys = {
         { '<Space>ca', '<CMD>Lspsaga code_action<CR>',          desc = "Code Action" },
@@ -1590,8 +1955,8 @@ require("lazy").setup({
       "NeogitOrg/neogit",
       event = "VeryLazy",
       dependencies = {
-        "nvim-lua/plenary.nvim",     -- required
-        "sindrets/diffview.nvim",    -- optional - Diff integration
+        "nvim-lua/plenary.nvim",         -- required
+        "sindrets/diffview.nvim",        -- optional - Diff integration
         -- Only one of these is needed.
         "nvim-telescope/telescope.nvim", -- optional
         -- "ibhagwan/fzf-lua",              -- optional
@@ -1613,7 +1978,7 @@ require("lazy").setup({
       lazy = false,
       dependencies = {
 
-        'tomasky/bookmarks.nvim',
+        -- 'tomasky/bookmarks.nvim',
         'nvim-tree/nvim-web-devicons',
         'nvim-lua/plenary.nvim',
         'fhill2/telescope-ultisnips.nvim',
@@ -1661,7 +2026,7 @@ require("lazy").setup({
           actions.close(prompt_bufnr)
           print(entry['value']:gsub("/+$", ""))
           if entry['value']:gsub("/+$", ""):match("([^/]+)$") == "nvim-playground" then
-              vim.cmd('edit ' .. entry['value'] .. '/init.lua')
+            vim.cmd('edit ' .. entry['value'] .. '/init.lua')
           else
             if file_exists('' .. entry['value'] .. '/README.org') then
               vim.cmd('edit ' .. entry['value'] .. '/README.org')
@@ -1677,6 +2042,12 @@ require("lazy").setup({
           vim.cmd 'wincmd l'
           vim.cmd('cd ' .. entry["value"])
           vim.cmd 'SidebarNvimToggle'
+          if file_exists('' .. entry['value'] .. '/TODO.org') then
+            vim.cmd 'split'
+            vim.cmd('edit ' .. entry['value'] .. '/TODO.org')
+            vim.api.nvim_win_set_height(0, 8)
+            vim.cmd 'wincmd k'
+          end
           -- vim.cmd('cd ')
         end
 
@@ -1726,7 +2097,7 @@ require("lazy").setup({
         pcall(require('telescope').load_extension, 'ultisnips')
         pcall(require('telescope').load_extension, 'project')
         pcall(require('telescope').load_extension, 'luasnip')
-        pcall(require('telescope').load_extension, 'bookmarks')
+        -- pcall(require('telescope').load_extension, 'bookmarks')
       end,
       keys = {
         { '<Space>bb', '<CMD>Telescope buffers<CR>',                             desc = 'Help Tags' },
@@ -1739,10 +2110,10 @@ require("lazy").setup({
         { '<Space>tf', '<CMD>Telescope find_files<CR>',                          desc = 'Files' },
         { '<Space>tr', '<CMD>Telescope live_grep<CR>',                           desc = 'Search (grep)' },
         { '<Space>to', '<CMD>Telescope project<CR>',                             desc = 'Projects' },
-        { '<Space>tc', '<CMD>Telescope commands<CR>',                             desc = 'Commands' },
-        { '<Space>th', '<CMD>Telescope help_tags<CR>',                             desc = 'Help' },
-        { '<Space>t/', '<CMD>Telescope current_buffer_fuzzy_find theme=ivy<CR>',                             desc = 'Open' },
-        { '<Space>td', '<CMD>Telescope diagnostics<CR>',                             desc = 'Diagnostics' },
+        { '<Space>tc', '<CMD>Telescope commands<CR>',                            desc = 'Commands' },
+        { '<Space>th', '<CMD>Telescope help_tags<CR>',                           desc = 'Help' },
+        { '<Space>t/', '<CMD>Telescope current_buffer_fuzzy_find theme=ivy<CR>', desc = 'Open' },
+        { '<Space>td', '<CMD>Telescope diagnostics<CR>',                         desc = 'Diagnostics' },
 
       },
     },
@@ -1792,14 +2163,14 @@ require("lazy").setup({
 
     -- }}} Trouble
 
--- Current unused (in favor of luasnip  (lua config))
-    -- -- {{{ Ultisnips
-    -- { 'SirVer/ultisnips',
-    --   keys = {
-    --     {'<Space>yy', '<CMD>Telescope ultisnips<CR>', desc = 'Snippets'}
-    --   },
-    -- },
-    -- -- }}} Ultisnips
+    --    -- Current unused (in favor of luasnip  (lua config))
+    --    -- -- {{{ Ultisnips
+    --    -- { 'SirVer/ultisnips',
+    --    --   keys = {
+    --    --     {'<Space>yy', '<CMD>Telescope ultisnips<CR>', desc = 'Snippets'}
+    --    --   },
+    --    -- },
+    --    -- -- }}} Ultisnips
 
     -- {{{ nvim-slime
 
@@ -1810,7 +2181,7 @@ require("lazy").setup({
         vim.g.slime_target = "neovim"
       end,
       keys = {
-        { '<A-Return>', '<CMD>SlimeSend<CR>', desc = 'Send to REPL', mode = { "v", "n" } }
+        { '<A-return>', '<CMD>SlimeSend<CR>', desc = 'Send to REPL', mode = { "v", "n" } }
       },
     },
 
@@ -1868,19 +2239,19 @@ require("lazy").setup({
     -- }}} Compiler.nvim
 
     -- {{{ Overseer
-      { -- The task runner we use
-        "stevearc/overseer.nvim",
-        commit = "6271cab7ccc4ca840faa93f54440ffae3a3918bd",
-        cmd = { "CompilerOpen", "CompilerToggleResults", "CompilerRedo" },
-        opts = {
-          task_list = {
-            direction = "bottom",
-            min_height = 25,
-            max_height = 25,
-            default_detail = 1
-          },
+    { -- The task runner we use
+      "stevearc/overseer.nvim",
+      commit = "6271cab7ccc4ca840faa93f54440ffae3a3918bd",
+      cmd = { "CompilerOpen", "CompilerToggleResults", "CompilerRedo" },
+      opts = {
+        task_list = {
+          direction = "bottom",
+          min_height = 25,
+          max_height = 25,
+          default_detail = 1
         },
       },
+    },
     -- }}} Overseer
 
     -- {{{ GP
@@ -1901,6 +2272,7 @@ require("lazy").setup({
     -- {{{ NvimTree
     {
       'kyazdani42/nvim-tree.lua',
+      lazy = false,
       dependencies = {
         {
           'b0o/nvim-tree-preview.lua',
@@ -1962,10 +2334,10 @@ require("lazy").setup({
 -- {{{ C
 
 vim.api.nvim_create_autocmd("BufEnter", {
-	pattern = "*.c",
-	callback = function()
-		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
-	end
+  pattern = "*.c",
+  callback = function()
+    mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+  end
 })
 
 -- }}} C
@@ -1973,10 +2345,10 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- {{{ lisp
 
 vim.api.nvim_create_autocmd("BufEnter", {
-	pattern = "*.lisp",
-	callback = function()
-		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
-	end
+  pattern = "*.lisp",
+  callback = function()
+    mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+  end
 })
 
 -- }}} lisp
@@ -1985,27 +2357,27 @@ vim.api.nvim_create_autocmd("BufEnter", {
 
 -- Lua ftconfig:
 vim.api.nvim_create_autocmd("BufEnter", {
-	pattern = "*.lua",
-	callback = function()
-		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
-		mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
-		mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
-		-- print("Hello lua filetype")
-	end
+  pattern = "*.lua",
+  callback = function()
+    mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+    mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
+    mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
+    -- print("Hello lua filetype")
+  end
 })
 
--- }}} Python
+-- }}} Lua
 
 -- {{{ Python
 
 vim.api.nvim_create_autocmd("BufEnter", {
-	pattern = "*.py",
-	callback = function()
-		-- print("Hello python filetype")
-		vim.opt.shiftwidth = 2
-		vim.opt.tabstop = 2
-		vim.opt.softtabstop = 2
-	end
+  pattern = "*.py",
+  callback = function()
+    -- print("Hello python filetype")
+    vim.opt.shiftwidth = 2
+    vim.opt.tabstop = 2
+    vim.opt.softtabstop = 2
+  end
 })
 
 -- }}} Python
@@ -2013,10 +2385,10 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- {{{ Javascript
 
 vim.api.nvim_create_autocmd("BufEnter", {
-	pattern = "*.js",
-	callback = function()
-		-- print("Hello javascript filetype")
-	end
+  pattern = "*.js",
+  callback = function()
+    -- print("Hello javascript filetype")
+  end
 })
 
 -- }}} Javascript
@@ -2024,10 +2396,10 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- {{{ Go
 
 vim.api.nvim_create_autocmd("BufEnter", {
-	pattern = "*.go",
-	callback = function()
-		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
-	end
+  pattern = "*.go",
+  callback = function()
+    mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+  end
 })
 
 -- }}} Javascript
@@ -2035,12 +2407,12 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- {{{ R
 
 vim.api.nvim_create_autocmd("BufEnter", {
-	pattern = {"*.r", "*.R"},
-	callback = function()
-		mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
-		mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
-		mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
-	end
+  pattern = { "*.r", "*.R" },
+  callback = function()
+    mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+    mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
+    mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
+  end
 })
 
 -- }}} Javascript
@@ -2048,5 +2420,37 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- }}} Filetype configs
 
 ---@diagnostic disable-next-line: unused-local
-local playround = require'playground'
+local playround = require 'playground'
 
+mymap('n', '<A-return>', '<CMD>SlimeSendCurrentLine<CR>')
+mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
+
+mymap('n', '<A-return>', '<CMD>SlimeSendCurrentLine<CR>')
+mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
+
+vim.api.nvim_set_keymap('n', 'gl', '<Plug>(Luadev-Run)', { noremap = false, silent = true })
+
+-- TODO: make format key binding instead of autocmd on save
+-- vim.api.nvim_create_autocmd("BufWritePre", {
+--   pattern = "*",
+--   callback = function() vim.lsp.buf.format({ async = true }) end,
+-- })
+
+
+
+
+-- ---@diagnostic disable-next-line: lowercase-global
+-- function hello_world()
+--   print("Hello, World!")
+-- end
+--
+-- ---@diagnostic disable-next-line: lowercase-global
+-- function read_file(file_path)
+--   local file = io.open(file_path, "r") -- Open the file in read mode
+--   if not file then
+--     return nil, "Could not open file"
+--   end
+--   local content = file:read("*a") -- Read the entire file content
+--   file:close()                    -- Close the file
+--   return content
+-- end
