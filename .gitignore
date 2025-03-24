@@ -8,3 +8,6 @@ language-playground/go/go.mod/
 language-playground/java/Main.class
 language-playground/c/main
 language-playground/cpp/main
+.RData
+.Rhistory
+bookmarks/

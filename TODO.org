@@ -1,8 +1,12 @@
-* TODO Fix nvim-slime
 * TODO Learn (in depth) how to use orgmode
 ** TODO Learn org captures in nvim
 ** TODO Learn org features in nvim
 * TODO Learn (in depth) how to use codecompanion
+* DONE Add git gutter
+* DONE add lua binding for sourcing lua files
+* DONE lua local M snippet
+* DONE add toggle TODO list keybinding
+* DONE buf info keybind
 * DONE Add code companion
   :LOGBOOK:
   CLOCK: [2025-03-02 Sun 12:14]--[2025-03-02 Sun 13:19] => 1:05

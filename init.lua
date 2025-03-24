@@ -1,4 +1,4 @@
--- # Simple neovim playground
+-- local nvp = require 'nvp'
 
 -- {{{ Initial Options
 
@@ -34,7 +34,20 @@ local function toggle_quickfix()
   end
 end
 
--- vim.api.nvim_create_user_command('CToggle', toggle_quickfix, {})
+---@diagnostic disable-next-line: lowercase-global
+show_line_diagnostics = function()
+  local line_diagnostics = vim.diagnostic.get(0, { lnum = vim.api.nvim_win_get_cursor(0)[1] })
+  if line_diagnostics then
+    vim.diagnostic.open_float(0, { severity_limit = 'Error' })
+  end
+end
+
+
+mymap('n', 'g:', '<CMD>term<CR>')
+
+mymap('n', '<Space>tn', '<CMD>lua toggle_number()<CR>')
+mymap('n', '<Space>tt', '<CMD>lua toggle_todo()<CR>')
+
 
 mymap('n', '<Space>cc', '<CMD>CodeCompanionActions<CR>')
 -- mymap('n', '<Space>cc', '<CMD>CToggle<CR>')
@@ -51,9 +64,9 @@ mymap('n', '<Space>bp', '<CMD>bp<CR>')
 mymap('n', 'gD', '<CMD>lua vim.lsp.buf.declaration()<CR>')
 mymap('n', 'gd', '<CMD>lua vim.lsp.buf.definition()<CR>')
 mymap('n', 'K', '<CMD>lua vim.lsp.buf.hover()<CR>')
-mymap('n', 'I', '<CMD>lua vim.diagnostic.show_line_diagnostics()<CR>')
+mymap('n', 'I', '<CMD>lua show_line_diagnostics()<CR>')
+-- mymap('n', 'I', '<CMD>lua vim.diagnostic.show_line_diagnostics()<CR>')
 mymap('n', 'gi', '<CMD>lua vim.lsp.buf.implementation()<CR>')
-mymap('n', 'ul', '<CMD>set number=true<CR>')
 -- Window right
 mymap('n', '<A-l>', '<CMD>wincmd l<CR>')
 mymap('t', '<A-l>', '<CMD>wincmd l<CR>')
@@ -122,15 +135,12 @@ mymap('n', '<C-S-tab>', '<CMD>tabprevious<CR>')
 
 -- }}} Base Key mappings
 
-mymap('n', 'g:', '<CMD>term<CR>')
-mymap('n', '<C-A-return>', '<CMD>echo "TODO"<CR>')
-
 -- {{{ General Options
 
 -- {{{ Statusline active/not_active behavior
 vim.cmd('highlight StatusLine guifg=#FF33FF guibg=#00FFFFBB')     -- Active buffer colors
 -- vim.cmd('highlight StatusLineNC guifg=#888888 guibg=#DFDFF1')     --  guibg=#000000'Inactive buffer colors
-vim.cmd('highlight StatusLineNC guifg=#888888 guibg=#000000')     --  guibg=#000000'Inactive buffer colors
+vim.cmd('highlight StatusLineNC guifg=#888888 guibg=#88888888')   --  guibg=#000000'Inactive buffer colors
 vim.cmd('highlight StatusLineActive guifg=#FF33FF guibg=#003366') -- Different color for active buffer
 
 -- Set highlight for window separators
@@ -227,7 +237,7 @@ vim.opt.mouse = 'a'
 vim.opt.number = false
 vim.opt.pumblend = 0
 vim.opt.pumheight = 15
-vim.opt.relativenumber = false
+-- vim.opt.relativenumber = false
 vim.opt.scrolloff = 5
 vim.opt.sidescrolloff = 8
 vim.opt.smartcase = true
@@ -258,6 +268,623 @@ vim.g['test#cpp#catch2#bin_dir'] = '../build/tests/'
 
 -- {{{ Utility functions
 
+
+---@diagnostic disable-next-line: lowercase-global
+function toggle_number()
+  if vim.wo.number then
+    vim.wo.number = false
+    vim.wo.relativenumber = false
+  else
+    vim.wo.number = true
+    vim.wo.relativenumber = false -- Optional: set to true if you want relative numbers
+  end
+end
+
+-- Optionally, create a command to call the toggle function
+vim.api.nvim_create_user_command('ToggleNumber', toggle_number, {})
+
+
+---@diagnostic disable-next-line: lowercase-global
+function toggle_todo()
+  local todo_buffer_name = 'TODO.org'
+  local windows = vim.api.nvim_tabpage_list_wins(0)
+  local current_win = vim.api.nvim_get_current_win()
+  local found = false
+
+  -- Check existing buffers in current windows
+  for _, win in ipairs(windows) do
+    local buffer = vim.api.nvim_win_get_buf(win)
+    if vim.fn.fnamemodify(vim.fn.bufname(buffer), ':t') == todo_buffer_name then
+      -- If found, close the buffer
+      vim.api.nvim_win_close(win, true) -- Close the window with TODO.org
+      found = true
+      break
+    end
+  end
+
+  -- If not found, open TODO.org in a horizontal split
+  if not found then
+    vim.cmd('split TODO.org')
+    vim.cmd('wincmd w') -- Switch to the newly opened split
+  else
+    -- Restore the original window position
+    vim.api.nvim_set_current_win(current_win)
+  end
+end
+
+-- Command to call the function
+vim.api.nvim_create_user_command('ToggleTODO', toggle_todo, {})
+
+
+
+
+
+
+
+
+--- Open neorepl
+-- opens the neorepl in a new split
+---@diagnostic disable-next-line: lowercase-global
+open_neorepl = function()
+  vim.cmd 'split'
+  local buf = vim.api.nvim_get_current_buf()
+  require('neorepl').new { lang = 'lua', buffer = buf }
+  vim.cmd 'resize 10 | setl winfixheight'
+  buf = vim.api.nvim_get_current_buf()
+  SendTo_Bufnr = buf
+  -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-w>k', true, false, true), 'm', true)
+end
+
+---@diagnostic disable-next-line: lowercase-global
+register_sendto_buffer = function()
+  local current_bufnr = tostring(vim.fn.bufnr '%')
+  current_bufnr = vim.fn.input('SendTo bufnr: ', current_bufnr)
+  SendTo_Bufnr = tonumber(current_bufnr)
+end
+
+--- Sends current line to SendTo buffer
+-- @see register_sendto_buffer, send_lines_to_buffer
+---@diagnostic disable-next-line: lowercase-global
+send_line_to_buffer = function()
+  local current_line = vim.api.nvim_get_current_line()
+  local original_bufnr = vim.fn.bufnr('%')
+  local original_cursor_pos = vim.api.nvim_win_get_cursor(0) -- Save cursor position
+
+  if SendTo_Bufnr == nil then
+    register_sendto_buffer()
+  end
+
+  local target_bufnr = SendTo_Bufnr
+  local win_id = vim.fn.bufwinid(target_bufnr)
+
+  if win_id ~= -1 then
+    vim.api.nvim_set_current_win(win_id)
+    vim.cmd('startinsert') -- Enter insert mode
+  else
+    return
+  end
+
+  -- Move to the bottom and insert the line.
+  vim.api.nvim_feedkeys(current_line, 'm', true)                                              -- Input the current line
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<CR>', true, false, true), 'm', true) -- Press Enter
+
+  -- Use vim.schedule to ensure the following code runs after feedkeys
+  vim.schedule(function()
+    -- Return to the original window and restore the cursor position
+    vim.api.nvim_set_current_win(vim.fn.bufwinid(original_bufnr))
+    vim.api.nvim_win_set_cursor(0, original_cursor_pos) -- Restore cursor position
+  end)
+end
+
+--- Gets the text in the visual selection
+-- @return a text string of the current visual selection
+---@diagnostic disable: lowercase-global
+get_visual_selection = function()
+  local s_start = vim.fn.getpos "'<"
+  local s_end = vim.fn.getpos "'>"
+  local n_lines = math.abs(s_end[2] - s_start[2]) + 1
+  local lines = vim.api.nvim_buf_get_lines(0, s_start[2] - 1, s_end[2], false)
+  lines[1] = string.sub(lines[1], s_start[3], -1)
+  if n_lines == 1 then
+    lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3] - s_start[3] + 1)
+  else
+    lines[n_lines] = string.sub(lines[n_lines], 1, s_end[3])
+  end
+  return table.concat(lines, '\n')
+end
+
+--- Gets the text in the visual selection
+-- @return a table of lines of current visual selection
+---@diagnostic disable: lowercase-global
+get_visual_selection_lines = function()
+  local s_start = vim.fn.getpos("'<")
+  local s_end = vim.fn.getpos("'>")
+  -- Adjust for zero-based indexing
+  local start_line = s_start[2] - 1
+  local end_line = s_end[2] - 1
+  local lines = vim.api.nvim_buf_get_lines(0, start_line, end_line + 1, false)
+  -- Trim the start of the first line if necessary
+  if #lines > 0 then
+    lines[1] = string.sub(lines[1], s_start[3], -1)
+  end
+
+  -- Trim the end of the last line if the selection spans multiple lines
+  if #lines > 1 then
+    lines[#lines] = string.sub(lines[#lines], 1, s_end[3])
+  elseif #lines == 1 then
+    lines[1] = string.sub(lines[1], s_start[3], s_end[3])
+  end
+
+  return lines
+end
+
+--- Sends visual selection to SendTo buffer
+-- @see register_sendto_buffer, send_line_to_buffer
+send_lines_to_buffer = function()
+  local current_lines = get_visual_selection_lines()
+  local original_bufnr = vim.fn.bufnr('%')
+  local original_cursor_pos = vim.api.nvim_win_get_cursor(0)
+  local target_bufnr = SendTo_Bufnr
+  local win_id = vim.fn.bufwinid(target_bufnr)
+  -- dump(current_lines)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<esc>', true, false, true), 'm', true)
+  vim.api.nvim_set_current_win(win_id)
+  vim.cmd('startinsert') -- Enter insert mode
+  -- vim.api.nvim_feedkeys('i', 'm', true) -- Input the current line
+  for _, line in ipairs(current_lines) do
+    vim.api.nvim_feedkeys(line, 'm', true) -- Input the current line
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<CR>', true, false, true), 'm', true)
+  end
+  -- Use vim.schedule to ensure the following code runs after feedkeys
+  vim.schedule(function()
+    -- Return to the original window and restore the cursor position
+    vim.api.nvim_set_current_win(vim.fn.bufwinid(original_bufnr))
+    vim.api.nvim_win_set_cursor(0, original_cursor_pos) -- Restore cursor position
+  end)
+end
+
+-- function that extracts selected text
+extract_selected_text = function()
+  -- Get the start and end positions of the selected text
+  local start_line, start_col, end_line, end_col = unpack(vim.fn.getpos "'<" + vim.fn.getpos "'>")
+  -- Extract the selected text using the range
+  local selected_text = vim.fn.getline(start_line, end_line)
+  -- If the selection spans multiple lines, adjust the text
+  if start_line ~= end_line then
+    selected_text[#selected_text] = selected_text[#selected_text]:sub(1, end_col)
+    selected_text[1] = selected_text[1]:sub(start_col)
+  else
+    selected_text[1] = selected_text[1]:sub(start_col, end_col)
+  end
+  ---@diagnostic disable-next-line: discard-returns, param-type-mismatch
+  table.concat(selected_text, '\n')
+end
+
+-- Make sure to require plenary.nvim at the beginning of your Lua configuration
+-- local popup = require('plenary.popup')
+
+function extract_selected_text_and_show_popup()
+  local popup = require 'plenary.popup'
+  -- Get the start and end positions of the selected text
+  local start_line, start_col, end_line, end_col = unpack(vim.fn.getpos "'<" + vim.fn.getpos "'>")
+
+  -- Extract the selected text using the range
+  local selected_text = vim.fn.getline(start_line, end_line)
+
+  -- If the selection spans multiple lines, adjust the text
+  if start_line ~= end_line then
+    selected_text[#selected_text] = selected_text[#selected_text]:sub(1, end_col)
+    selected_text[1] = selected_text[1]:sub(start_col)
+  else
+    selected_text[1] = selected_text[1]:sub(start_col, end_col)
+  end
+
+  -- Join the lines to create a single string
+  ---@diagnostic disable-next-line: discard-returns, param-type-mismatch
+  local textstring = table.concat(selected_text, '\n')
+
+  -- Create a popup with the extracted text
+  local popup_opts = {
+    line = 10,
+    col = 10,
+    width = #textstring + 4,
+    height = #textstring + 2,
+    border = { '╭', '─', '╮', '│', '╯', '─', '╰', '│' },
+    padding = { 0, 1, 0, 1 },
+  }
+
+  local popup_bufnr = vim.api.nvim_create_buf(false, true)
+  ---@diagnostic disable-next-line: discard-returns, param-type-mismatch
+  vim.api.nvim_buf_set_lines(popup_bufnr, 0, -1, false, vim.fn.split(selected_text, '\n'))
+  local popup_winid = popup.create(popup_bufnr, popup_opts)
+
+  -- You can close the popup after a delay (e.g., 5 seconds) if needed
+  vim.defer_fn(function()
+    vim.api.nvim_win_close(popup_winid, true)
+  end, 5000)
+end
+
+extract_paragraph_at_cursor = function()
+  -- Get the current line number
+  local current_line = vim.fn.line '.'
+
+  -- Find the start and end lines of the paragraph
+  local start_line = current_line
+  local end_line = current_line
+
+  -- Find the start line of the paragraph
+  while start_line > 1 and vim.fn.trim(vim.fn.getline(start_line - 1)) ~= '' do
+    start_line = start_line - 1
+  end
+
+  -- Find the end line of the paragraph
+  while end_line < vim.fn.line '$' and vim.fn.trim(vim.fn.getline(end_line + 1)) ~= '' do
+    end_line = end_line + 1
+  end
+
+  -- Extract the paragraph text
+  local paragraph_lines = {}
+  for line = start_line, end_line do
+    table.insert(paragraph_lines, vim.fn.getline(line))
+  end
+
+  -- Join the lines to create a single string
+  local paragraph_text = table.concat(paragraph_lines, '\n')
+
+  -- Print or use the extracted paragraph text as needed
+  -- print(paragraph_text)
+  -- You can also return the extracted paragraph text for further use
+  return paragraph_text
+end
+
+-- utilities.readFromFile = function(file_path)
+--   local file = io.open(file_path, "r");
+--   if file then
+--     local content = file:read("*a");
+--     file:close();
+--     return content;
+--   else
+--     return nil;
+--   end
+-- end
+
+readFromFile = function(file_path)
+  local bufnr = vim.fn.bufadd(file_path)
+  if bufnr ~= 0 then
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+    if #lines > 0 then
+      return table.concat(lines, '\n')
+    else
+      return 'Error: File is empty.'
+    end
+  else
+    return 'Error: Unable to open the file.'
+  end
+end
+
+run_shell_command_to_buffer = function(command)
+  local output = vim.fn.systemlist(command)
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, output)
+  vim.cmd 'enew | setlocal buftype=nofile bufhidden=hide noswapfile'
+  vim.cmd 'setlocal filetype=text'
+  vim.api.nvim_set_current_buf(bufnr)
+end
+
+run_shell_to_string = function(command)
+  local output = vim.fn.systemlist(command)
+  return output
+end
+
+readFromFile2 = function(file_path)
+  local file = io.open(file_path, 'r') -- Open the file in read mode
+  if file then
+    local content = file:read '*a'
+    file:close()
+    if content == '' then
+      return 'File was empty'
+    else
+      return content
+    end
+    return content
+  else
+    return 'Error: Unable to open the file.'
+  end
+end
+
+show_simple_popup = function(text)
+  local popup = require 'plenary.popup'
+  local popup_opts = {
+    line = vim.fn.line '.' + 1,
+    col = vim.fn.col '.',
+    width = 30,
+    height = 3,
+    padding = { 0, 1, 0, 1 },
+    move_on_insert = true,
+    close_on_buf_leave = true,
+  }
+  ---@diagnostic disable-next-line: discard-returns, param-type-mismatch, unused-local
+  local popup_winid, popup_bufnr = popup.create(split_string_at_newlines(text), popup_opts)
+end
+
+show_paragraph_in_popup = function()
+  local paragraph = extract_paragraph_at_cursor()
+  show_simple_popup(paragraph)
+end
+
+runRScript = function(text)
+  local temp_file1 = vim.fn.tempname()
+  local temp_file2 = vim.fn.tempname()
+  local file = io.open(temp_file1, 'w')
+  if file then
+    file:write(text)
+    file:close()
+  else
+    print('Error: Could not open file temp_file1 (' .. temp_file1 .. ') for writing.')
+    return
+  end
+  local command = 'Rscript ' .. temp_file1 .. ' > ' .. temp_file2
+  ---@diagnostic disable-next-line: unused-local
+  local output = vim.fn.system(command)
+  file = io.open(temp_file1, 'w')
+  if file then
+    file:write(text)
+    file:close()
+  else
+    print 'Error: Could not open file for writing.'
+    return
+  end
+  ---@diagnostic disable-next-line: redefined-local
+  local file = io.open(temp_file2, 'r')
+  if file then
+    local content = file:read '*a'
+    return content
+  else
+    print('Unable to read' .. temp_file2)
+  end
+end
+
+getCurrentBufferFilePath = function()
+  local bufnr = vim.fn.bufnr '%'
+  if bufnr ~= 0 then
+    return vim.fn.bufname(bufnr)
+  else
+    return nil
+  end
+end
+
+extractFilename = function(filepath)
+  local filename = string.match(filepath, '[^/\\]+$')
+  return filename or filepath
+end
+
+strip_newline_symbols = function(text)
+  local result = text:gsub('\n', '')
+  return result
+end
+
+run_lua_text = function(text)
+  ---@diagnostic disable-next-line: undefined-global
+  vim.cmd('lua ' .. replace_newlines_with_semicolons(text))
+end
+
+run_lua_paragraph = function()
+  local text = extract_paragraph_at_cursor()
+  vim.cmd('lua ' .. strip_newline_symbols(text))
+end
+
+split_string_at_newlines = function(text)
+  local lines = {}
+  for line in text:gmatch '[^\r\n]+' do
+    table.insert(lines, line)
+  end
+  return lines
+end
+
+
+---@diagnostic disable-next-line: unused-local
+parse_cpp_test_output = function(output)
+  ---@diagnostic disable-next-line: unused-local
+  local ret = {}
+  local test_output = run_shell_to_string 'make test'
+  local ntest_line_idx = 0
+  for key, value in pairs(test_output) do
+    if value:find('%f[%a]' .. 'test cases' .. '%f[%A]') then
+      ntest_line_idx = key
+      -- npass_line_idx = key
+    end
+  end
+  local ntests = 0
+  local ntests_passed = 0
+  if ntest_line_idx == 0 then
+    ntests = 0
+    ntests_passed = 0
+  else
+    ntests, ntests_passed = test_output[ntest_line_idx]:match ': (%d+) | (%d+)'
+    -- ntests = tonumber(test_output[ntest_line_idx]:match '%d+')
+    -- ntests_passing = tonumber(test_output[npass_line_idx]:match '%d+')
+  end
+  ret['ntests'] = ntests
+  ret['passing'] = ntests_passed
+  return ret
+end
+
+parse_cpp_coverage_ouput = function()
+  local ret = {}
+  local lout = ''
+  local fout = ''
+  local test_output = run_shell_to_string 'make coverage'
+  local ntest_line_idx = 0
+  local npass_line_idx = 0
+  for key, value in pairs(test_output) do
+    if value:find('%f[%a]' .. 'Overall coverage' .. '%f[%A]') then
+      ntest_line_idx = key + 1
+      npass_line_idx = key + 2
+    end
+  end
+  ---@diagnostic disable-next-line: unused-local
+  local ntests = 0
+  ---@diagnostic disable-next-line: unused-local
+  local ntests_passing = 0
+  if ntest_line_idx == 0 then
+    ---@diagnostic disable-next-line: unused-local
+    ntests = 0
+    ---@diagnostic disable-next-line: unused-local
+    ntests_passing = 0
+    lout = '100% (0/0)'
+    fout = '100% (0/0)'
+  else
+    ---@diagnostic disable-next-line: unused-local, cast-local-type
+    ntests = tonumber(test_output[ntest_line_idx]:match '%d+')
+    ---@diagnostic disable-next-line: unused-local, cast-local-type
+    ntests_passing = tonumber(test_output[npass_line_idx]:match '%d+')
+    local lpercentage, lnumerator, ldenominator =
+        string.match(test_output[ntest_line_idx], '(%d+%.?%d*)%% %((%d+) of (%d+) lines%)')
+    if lpercentage == nil then
+      lout = '100% (0/0)'
+    else
+      lout = '' .. lpercentage .. '%' .. ' (' .. lnumerator .. '/' .. ldenominator .. ')'
+    end
+
+    local fpercentage, fnumerator, fdenominator =
+        string.match(test_output[npass_line_idx], '(%d+%.?%d*)%% %((%d+) of (%d+) functions%)')
+    if fpercentage == nil then
+      fout = '100% (0/0)'
+    else
+      fout = '' .. fpercentage .. '%' .. ' (' .. fnumerator .. '/' .. fdenominator .. ')'
+    end
+  end
+  ret['lines'] = lout
+  ret['functions'] = fout
+  return ret
+end
+
+-- see if the file exists
+file_exists = function(file)
+  local f = io.open(file, 'rb')
+  if f then
+    f:close()
+  end
+  return f ~= nil
+end
+
+init_ldmode = function()
+  if not file_exists '/home/jordan/.cache/ldmode' then
+    local file = io.open('/home/jordan/.cache/ldmode', 'w')
+    ---@diagnostic disable-next-line: need-check-nil
+    file:write 'dark'
+    ---@diagnostic disable-next-line: need-check-nil
+    file:close()
+  end
+end
+
+
+-- get all lines from a file, returns an empty
+-- list/table if the file does not exist
+lines_from = function(file)
+  if not file_exists(file) then
+    return {}
+  end
+  local lines = {}
+  for line in io.lines(file) do
+    lines[#lines + 1] = line
+  end
+  return lines
+end
+
+get_ldmode = function()
+  return lines_from '/home/jordan/.cache/ldmode'
+end
+
+waldark_toggle = function()
+  io.popen 'waldark '
+end
+
+waldark_dark = function()
+  io.popen 'waldark --dark'
+end
+
+waldark_light = function()
+  io.popen 'waldark --light'
+end
+
+swap_window_right = function()
+  local current_win = vim.api.nvim_get_current_win()
+  local current_buf = vim.api.nvim_win_get_buf(current_win)
+  vim.api.nvim_command 'wincmd l'
+  local right_win = vim.api.nvim_get_current_win()
+  local right_buf = vim.api.nvim_win_get_buf(right_win)
+  if current_win ~= right_win then
+    -- vim.api.nvim_command 'wincmd h'
+    vim.api.nvim_win_set_buf(current_win, right_buf)
+    vim.api.nvim_win_set_buf(right_win, current_buf)
+  end
+  -- return utilities.dump(current_buf)
+end
+
+swap_window_left = function()
+  local current_win = vim.api.nvim_get_current_win()
+  local current_buf = vim.api.nvim_win_get_buf(current_win)
+  vim.api.nvim_command 'wincmd h'
+  local left_win = vim.api.nvim_get_current_win()
+  local left_buf = vim.api.nvim_win_get_buf(left_win)
+  if current_win ~= left_win then
+    -- vim.api.nvim_command 'wincmd l'
+    vim.api.nvim_win_set_buf(current_win, left_buf)
+    vim.api.nvim_win_set_buf(left_win, current_buf)
+  end
+end
+
+swap_window_up = function()
+  local current_win = vim.api.nvim_get_current_win()
+  local current_buf = vim.api.nvim_win_get_buf(current_win)
+  vim.api.nvim_command 'wincmd k'
+  local up_win = vim.api.nvim_get_current_win()
+  local up_buf = vim.api.nvim_win_get_buf(up_win)
+  if current_win ~= up_win then
+    -- vim.api.nvim_command 'wincmd j'
+    vim.api.nvim_win_set_buf(current_win, up_buf)
+    vim.api.nvim_win_set_buf(up_win, current_buf)
+  end
+end
+
+swap_window_down = function()
+  local current_win = vim.api.nvim_get_current_win()
+  local current_buf = vim.api.nvim_win_get_buf(current_win)
+  vim.api.nvim_command 'wincmd j'
+  local down_win = vim.api.nvim_get_current_win()
+  local down_buf = vim.api.nvim_win_get_buf(down_win)
+  if current_win ~= down_win then
+    -- vim.api.nvim_command 'wincmd k'
+    vim.api.nvim_win_set_buf(current_win, down_buf)
+    vim.api.nvim_win_set_buf(down_win, current_buf)
+  end
+end
+
+determine_project_type = function()
+  local ret = 'unknown'
+  local current_dir = vim.fn.getcwd()
+  if file_exists(current_dir .. '/.luarc.json') then
+    return 'lua'
+  end
+  if file_exists(current_dir .. '/CMakeLists.txt') then
+    return 'cpp'
+  end
+  return ret
+end
+
+slime_send_make_run = function()
+  vim.api.nvim_call_function('slime#send', { 'make run\n' })
+end
+
+slime_send = function(cmd)
+  vim.api.nvim_call_function('slime#send', { cmd .. '\n' })
+end
+
+say_hello = function()
+  print 'hello world'
+end
 
 ---@diagnostic disable-next-line: lowercase-global
 function dump(o)
@@ -461,6 +1088,77 @@ require("lazy").setup({
   spec = {
 
 
+    -- https://github.com/thesimonho/kanagawa-paper.nvim
+    { "thesimonho/kanagawa-paper.nvim" },
+
+    { "savq/melange-nvim" },
+    -- { "EdenEast/nightfox.nvim" },
+
+    {
+      -- https://github.com/nvim-focus/focus.nvim
+      'nvim-focus/focus.nvim',
+      config = function()
+        require("focus").setup({
+          enable = false,         -- Enable module
+          commands = true,        -- Create Focus commands
+          autoresize = {
+            enable = true,        -- Enable or disable auto-resizing of splits
+            width = 0,            -- Force width for the focused window
+            height = 0,           -- Force height for the focused window
+            minwidth = 0,         -- Force minimum width for the unfocused window
+            minheight = 0,        -- Force minimum height for the unfocused window
+            height_quickfix = 10, -- Set the height of quickfix panel
+          },
+          split = {
+            bufnew = false, -- Create blank buffer for new split windows
+            tmux = false,   -- Create tmux splits instead of neovim splits
+          },
+          ui = {
+            number = false,                    -- Display line numbers in the focussed window only
+            relativenumber = false,            -- Display relative line numbers in the focussed window only
+            hybridnumber = false,              -- Display hybrid line numbers in the focussed window only
+            absolutenumber_unfocussed = false, -- Preserve absolute numbers in the unfocussed windows
+            cursorline = true,                 -- Display a cursorline in the focussed window only
+            cursorcolumn = false,              -- Display cursorcolumn in the focussed window only
+            colorcolumn = {
+              enable = false,                  -- Display colorcolumn in the foccused window only
+              list = '+1',                     -- Set the comma-saperated list for the colorcolumn
+            },
+            signcolumn = true,                 -- Display signcolumn in the focussed window only
+            winhighlight = false,              -- Auto highlighting for focussed/unfocussed windows
+          }
+        })
+      end,
+    },
+
+
+    -- {{{ plenary
+    {
+      "nvim-lua/plenary.nvim",
+      event = "BufRead",
+      config = function()
+        mymap("n", "<leader>bi", "<cmd>lua require'nvp'.show_buffer_info()<cr>")
+      end,
+    },
+    -- }}} plenary
+
+
+
+    -- {{{ zen-mode
+    {
+      "folke/zen-mode.nvim",
+      opts = {
+        -- your configuration comes here
+        -- or leave it empty to use the default settings
+        -- refer to the configuration section below
+      },
+      cmd = "ZenMode",
+      keys = {
+        { "<A-z>", "<CMD>ZenMode<CR>", desc = "Zen Mode" },
+      },
+    },
+    -- }}} zen-mode
+
     -- {{{ CodeCompanion
     {
       "olimorris/codecompanion.nvim",
@@ -485,7 +1183,7 @@ require("lazy").setup({
           },
         },
         messages = {
-          -- NOTE: If you enable messages, then the cmdline is enabled automatically.
+          -- If you enable messages, then the cmdline is enabled automatically.
           -- This is a current Neovim limitation.
           enabled = false,             -- enables the Noice messages UI
           view = "notify",             -- default view for messages
@@ -532,7 +1230,7 @@ require("lazy").setup({
       dependencies = { "nvim-lua/plenary.nvim" },
       opts = {},
       keys = {
-        { "<Space>tt", "<CMD>TodoTelescope<CR>", desc = "Todos" },
+        { "<Space>tT", "<CMD>TodoTelescope<CR>", desc = "Todos" },
       }
     },
     -- }}} todo comments
@@ -598,11 +1296,11 @@ require("lazy").setup({
             local timer_text = get_running_timer_text({
               -- '~/orgfiles/**',
               -- '~/orgfiles/**/*',
-              -- '~/dev/CHARM-3.0/**',
-              -- '~/dev/charm/',
+              '~/dev/CHARM-3.0/**',
+              '~/dev/charm/',
               '~/dev/templates/**/*',
               '~/.config/nvim-playground/**',
-              -- '~/papers/tmc/**'
+              '~/papers/tmc/**'
             })
             -- local timer_text = "Current Task: "
             return timer_text
@@ -908,7 +1606,7 @@ require("lazy").setup({
         require('ide').setup(opts)
       end,
       keys = {
-        { '<Space>ff', '<CMD>Workspace LeftPanelToggle<CR>', desc = "Left Sidebar (files)" },
+        { '<Space>ii', '<CMD>Workspace LeftPanelToggle<CR>', desc = "Left Sidebar (files)" },
       },
     },
     -- }}} Nvim-ide
@@ -1195,21 +1893,618 @@ require("lazy").setup({
       build = "make install_jsregexp",
       config = function()
         local ls = require("luasnip")
-        ls.snippets = {
-          all = {
-            ls.parser.parse_snippet("fn", "function ${1:name}(${2:args})\n\t$0\nend"),
-          },
-          lua = {
-            ls.parser.parse_snippet("for", "for ${1:var}, ${2:value} in pairs(${3:table}) do\n\t$0\nend"),
-          },
-        }
+        -- some shorthands...
+        local s = ls.snippet
+        local sn = ls.snippet_node
+        local t = ls.text_node
+        local i = ls.insert_node
+        local f = ls.function_node
+        local c = ls.choice_node
+        local d = ls.dynamic_node
+        local r = ls.restore_node
+        local l = require("luasnip.extras").lambda
+        local rep = require("luasnip.extras").rep
+        local p = require("luasnip.extras").partial
+        local m = require("luasnip.extras").match
+        local n = require("luasnip.extras").nonempty
+        local dl = require("luasnip.extras").dynamic_lambda
+        local fmt = require("luasnip.extras.fmt").fmt
+        local fmta = require("luasnip.extras.fmt").fmta
+        local types = require("luasnip.util.types")
+        local conds = require("luasnip.extras.conditions")
+        local conds_expand = require("luasnip.extras.conditions.expand")
 
-        require("luasnip.loaders.from_vscode").load {
-          exclude = { "javascript" },
-        }
+        -- If you're reading this file for the first time, best skip to around line 190
+        -- where the actual snippet-definitions start.
+
+        -- Every unspecified option will be set to the default.
+        ls.setup({
+          keep_roots = true,
+          link_roots = true,
+          link_children = true,
+
+          -- Update more often, :h events for more info.
+          update_events = "TextChanged,TextChangedI",
+          -- Snippets aren't automatically removed if their text is deleted.
+          -- `delete_check_events` determines on which events (:h events) a check for
+          -- deleted snippets is performed.
+          -- This can be especially useful when `history` is enabled.
+          delete_check_events = "TextChanged",
+          ext_opts = {
+            [types.choiceNode] = {
+              active = {
+                virt_text = { { "choiceNode", "Comment" } },
+              },
+            },
+          },
+          -- treesitter-hl has 100, use something higher (default is 200).
+          ext_base_prio = 300,
+          -- minimal increase in priority.
+          ext_prio_increase = 1,
+          enable_autosnippets = true,
+          -- mapping for cutting selected text so it's usable as SELECT_DEDENT,
+          -- SELECT_RAW or TM_SELECTED_TEXT (mapped via xmap).
+          store_selection_keys = "<Tab>",
+          -- luasnip uses this function to get the currently active filetype. This
+          -- is the (rather uninteresting) default, but it's possible to use
+          -- eg. treesitter for getting the current filetype by setting ft_func to
+          -- require("luasnip.extras.filetype_functions").from_cursor (requires
+          -- `nvim-treesitter/nvim-treesitter`). This allows correctly resolving
+          -- the current filetype in eg. a markdown-code block or `vim.cmd()`.
+          ft_func = function()
+            return vim.split(vim.bo.filetype, ".", {plain = true})
+          end,
+        })
+
+        -- args is a table, where 1 is the text in Placeholder 1, 2 the text in
+        -- placeholder 2,...
+        local function copy(args)
+          return args[1]
+        end
+
+        -- 'recursive' dynamic snippet. Expands to some text followed by itself.
+        local rec_ls
+        rec_ls = function()
+          return sn(
+            nil,
+            c(1, {
+              -- Order is important, sn(...) first would cause infinite loop of expansion.
+              t(""),
+              sn(nil, { t({ "", "\t\\item " }), i(1), d(2, rec_ls, {}) }),
+            })
+          )
+        end
+
+        -- complicated function for dynamicnode.
+        local function jdocsnip(args, _, old_state)
+          -- !!! old_state is used to preserve user-input here. don't do it that way!
+          -- using a restorenode instead is much easier.
+          -- view this only as an example on how old_state functions.
+          local nodes = {
+            t({ "/**", " * " }),
+            i(1, "a short description"),
+            t({ "", "" }),
+          }
+
+          -- these will be merged with the snippet; that way, should the snippet be updated,
+          -- some user input eg. text can be referred to in the new snippet.
+          local param_nodes = {}
+
+          if old_state then
+            nodes[2] = i(1, old_state.descr:get_text())
+          end
+          param_nodes.descr = nodes[2]
+
+          -- at least one param.
+          if string.find(args[2][1], ", ") then
+            vim.list_extend(nodes, { t({ " * ", "" }) })
+          end
+
+          local insert = 2
+          ---@diagnostic disable-next-line: unused-local
+          for indx, arg in ipairs(vim.split(args[2][1], ", ", {plain = true})) do
+            -- get actual name parameter.
+            arg = vim.split(arg, " ", {plain = true})[2]
+            if arg then
+              local inode
+              -- if there was some text in this parameter, use it as static_text for this new snippet.
+              if old_state and old_state[arg] then
+                inode = i(insert, old_state["arg" .. arg]:get_text())
+              else
+                inode = i(insert)
+              end
+              vim.list_extend(
+                nodes,
+                { t({ " * @param " .. arg .. " " }), inode, t({ "", "" }) }
+              )
+              param_nodes["arg" .. arg] = inode
+
+              insert = insert + 1
+            end
+          end
+
+          if args[1][1] ~= "void" then
+            local inode
+            if old_state and old_state.ret then
+              inode = i(insert, old_state.ret:get_text())
+            else
+              inode = i(insert)
+            end
+
+            vim.list_extend(
+              nodes,
+              { t({ " * ", " * @return " }), inode, t({ "", "" }) }
+            )
+            param_nodes.ret = inode
+            insert = insert + 1
+          end
+
+          if vim.tbl_count(args[3]) ~= 1 then
+            local exc = string.gsub(args[3][2], " throws ", "")
+            local ins
+            if old_state and old_state.ex then
+              ins = i(insert, old_state.ex:get_text())
+            else
+              ins = i(insert)
+            end
+            vim.list_extend(
+              nodes,
+              { t({ " * ", " * @throws " .. exc .. " " }), ins, t({ "", "" }) }
+            )
+            param_nodes.ex = ins
+            insert = insert + 1
+          end
+
+          vim.list_extend(nodes, { t({ " */" }) })
+
+          local snip = sn(nil, nodes)
+          -- error on attempting overwrite.
+          snip.old_state = param_nodes
+          return snip
+        end
+
+        -- make sure to not pass an invalid command, as io.popen() may write over nvim-text.
+        local function bash(_, _, command)
+          local file = io.popen(command, "r")
+          local res = {}
+          ---@diagnostic disable-next-line: need-check-nil
+          for line in file:lines() do
+            table.insert(res, line)
+          end
+          return res
+        end
+
+        -- returns a snippet_node wrapped around an insertnode whose initial
+        -- text value is set to the current date in the desired format.
+       ---@diagnostic disable-next-line: unused-local, redefined-local
+        local date_input = function(args, snip, old_state, fmt)
+       ---@diagnostic disable-next-line: redefined-local
+          local fmt = fmt or "%y-%m-%d"
+          return sn(nil, i(1, os.date(fmt)))
+        end
+
+        -- snippets are added via ls.add_snippets(filetype, snippets[, opts]), where
+        -- opts may specify the `type` of the snippets ("snippets" or "autosnippets",
+        -- for snippets that should expand directly after the trigger is typed).
+        --
+        -- opts can also specify a key. by passing an unique key to each add_snippets, it's possible to reload snippets by
+        -- re-`:luafile`ing the file in which they are defined (eg. this one).
+        ls.add_snippets("all", {
+          -- trigger is `fn`, second argument to snippet-constructor are the nodes to insert into the buffer on expansion.
+          s("fn", {
+            -- Simple static text.
+            t("//Parameters: "),
+            -- function, first parameter is the function, second the Placeholders
+            -- whose text it gets as input.
+            f(copy, 2),
+            t({ "", "function " }),
+            -- Placeholder/Insert.
+            i(1),
+            t("("),
+            -- Placeholder with initial text.
+            i(2, "int foo"),
+            -- Linebreak
+            t({ ") {", "\t" }),
+            -- Last Placeholder, exit Point of the snippet.
+            i(0),
+            t({ "", "}" }),
+          }),
+          s("class", {
+            -- Choice: Switch between two different Nodes, first parameter is its position, second a list of nodes.
+            c(1, {
+              t("public "),
+              t("private "),
+            }),
+            t("class "),
+            i(2),
+            t(" "),
+            c(3, {
+              t("{"),
+              -- sn: Nested Snippet. Instead of a trigger, it has a position, just like insertNodes. !!! These don't expect a 0-node!!!!
+              -- Inside Choices, Nodes don't need a position as the choice node is the one being jumped to.
+              sn(nil, {
+                t("extends "),
+                -- restoreNode: stores and restores nodes.
+                -- pass position, store-key and nodes.
+                r(1, "other_class", i(1)),
+                t(" {"),
+              }),
+              sn(nil, {
+                t("implements "),
+                -- no need to define the nodes for a given key a second time.
+                r(1, "other_class"),
+                t(" {"),
+              }),
+            }),
+            t({ "", "\t" }),
+            i(0),
+            t({ "", "}" }),
+          }),
+          -- Alternative printf-like notation for defining snippets. It uses format
+          -- string with placeholders similar to the ones used with Python's .format().
+          s(
+            "fmt1",
+            fmt("To {title} {} {}.", {
+              i(2, "Name"),
+              i(3, "Surname"),
+              title = c(1, { t("Mr."), t("Ms.") }),
+            })
+          ),
+          -- To escape delimiters use double them, e.g. `{}` -> `{{}}`.
+          -- Multi-line format strings by default have empty first/last line removed.
+          -- Indent common to all lines is also removed. Use the third `opts` argument
+          -- to control this behaviour.
+          s(
+            "fmt2",
+            fmt(
+              [[
+		foo({1}, {3}) {{
+			return {2} * {4}
+		}}
+		]],
+              {
+                i(1, "x"),
+                rep(1),
+                i(2, "y"),
+                rep(2),
+              }
+            )
+          ),
+          -- Empty placeholders are numbered automatically starting from 1 or the last
+          -- value of a numbered placeholder. Named placeholders do not affect numbering.
+          s(
+            "fmt3",
+            fmt("{} {a} {} {1} {}", {
+              t("1"),
+              t("2"),
+              a = t("A"),
+            })
+          ),
+          -- The delimiters can be changed from the default `{}` to something else.
+          s("fmt4", fmt("foo() { return []; }", i(1, "x"), { delimiters = "[]" })),
+          -- `fmta` is a convenient wrapper that uses `<>` instead of `{}`.
+          s("fmt5", fmta("foo() { return <>; }", i(1, "x"))),
+          -- By default all args must be used. Use strict=false to disable the check
+          s(
+            "fmt6",
+            fmt("use {} only", { t("this"), t("not this") }, { strict = false })
+          ),
+          -- Use a dynamicNode to interpolate the output of a
+          -- function (see date_input above) into the initial
+          -- value of an insertNode.
+          s("novel", {
+            t("It was a dark and stormy night on "),
+            d(1, date_input, {}, { user_args = { "%A, %B %d of %Y" } }),
+            t(" and the clocks were striking thirteen."),
+          }),
+          -- Parsing snippets: First parameter: Snippet-Trigger, Second: Snippet body.
+          -- Placeholders are parsed into choices with 1. the placeholder text(as a snippet) and 2. an empty string.
+          -- This means they are not SELECTed like in other editors/Snippet engines.
+          ls.parser.parse_snippet(
+            "lspsyn",
+            "Wow! This ${1:Stuff} really ${2:works. ${3:Well, a bit.}}"
+          ),
+
+          -- When wordTrig is set to false, snippets may also expand inside other words.
+          ls.parser.parse_snippet(
+            { trig = "te", wordTrig = false },
+            "${1:cond} ? ${2:true} : ${3:false}"
+          ),
+
+          -- When regTrig is set, trig is treated like a pattern, this snippet will expand after any number.
+          ls.parser.parse_snippet({ trig = "%d", regTrig = true }, "A Number!!"),
+          -- Using the condition, it's possible to allow expansion only in specific cases.
+          s("cond", {
+            t("will only expand in c-style comments"),
+          }, {
+            ---@diagnostic disable-next-line: unused-local
+            condition = function(line_to_cursor, matched_trigger, captures)
+              -- optional whitespace followed by //
+              return line_to_cursor:match("%s*//")
+            end,
+          }),
+          -- there's some built-in conditions in "luasnip.extras.conditions.expand" and "luasnip.extras.conditions.show".
+          s("cond2", {
+            t("will only expand at the beginning of the line"),
+          }, {
+            condition = conds_expand.line_begin,
+          }),
+          s("cond3", {
+            t("will only expand at the end of the line"),
+          }, {
+            condition = conds_expand.line_end,
+          }),
+          -- on conditions some logic operators are defined
+          s("cond4", {
+            t("will only expand at the end and the start of the line"),
+          }, {
+            -- last function is just an example how to make own function objects and apply operators on them
+            condition = conds_expand.line_end
+                + conds_expand.line_begin
+                * conds.make_condition(function()
+                  return true
+                end),
+          }),
+          -- The last entry of args passed to the user-function is the surrounding snippet.
+          s(
+            { trig = "a%d", regTrig = true },
+            f(function(_, snip)
+              return "Triggered with " .. snip.trigger .. "."
+            end, {})
+          ),
+          -- It's possible to use capture-groups inside regex-triggers.
+          s(
+            { trig = "b(%d)", regTrig = true },
+            f(function(_, snip)
+              return "Captured Text: " .. snip.captures[1] .. "."
+            end, {})
+          ),
+          s({ trig = "c(%d+)", regTrig = true }, {
+            t("will only expand for even numbers"),
+          }, {
+            ---@diagnostic disable-next-line: unused-local
+            condition = function(line_to_cursor, matched_trigger, captures)
+              return tonumber(captures[1]) % 2 == 0
+            end,
+          }),
+          -- Use a function to execute any shell command and print its text.
+          s("bash", f(bash, {}, { user_args = { "ls" } })),
+          -- Short version for applying String transformations using function nodes.
+          s("transform", {
+            i(1, "initial text"),
+            t({ "", "" }),
+            -- lambda nodes accept an l._1,2,3,4,5, which in turn accept any string transformations.
+            -- This list will be applied in order to the first node given in the second argument.
+            l(l._1:match("[^i]*$"):gsub("i", "o"):gsub(" ", "_"):upper(), 1),
+          }),
+
+          s("transform2", {
+            i(1, "initial text"),
+            t("::"),
+            i(2, "replacement for e"),
+            t({ "", "" }),
+            -- Lambdas can also apply transforms USING the text of other nodes:
+            l(l._1:gsub("e", l._2), { 1, 2 }),
+          }),
+          s({ trig = "trafo(%d+)", regTrig = true }, {
+            -- env-variables and captures can also be used:
+            l(l.CAPTURE1:gsub("1", l.TM_FILENAME), {}),
+          }),
+          -- Set store_selection_keys = "<Tab>" (for example) in your
+          -- luasnip.config.setup() call to populate
+          -- TM_SELECTED_TEXT/SELECT_RAW/SELECT_DEDENT.
+          -- In this case: select a URL, hit Tab, then expand this snippet.
+          s("link_url", {
+            t('<a href="'),
+            f(function(_, snip)
+              -- TM_SELECTED_TEXT is a table to account for multiline-selections.
+              -- In this case only the first line is inserted.
+              return snip.env.TM_SELECTED_TEXT[1] or {}
+            end, {}),
+            t('">'),
+            i(1),
+            t("</a>"),
+            i(0),
+          }),
+          -- Shorthand for repeating the text in a given node.
+          s("repeat", { i(1, "text"), t({ "", "" }), rep(1) }),
+          -- Directly insert the ouput from a function evaluated at runtime.
+          s("part", p(os.date, "%Y")),
+          -- use matchNodes (`m(argnode, condition, then, else)`) to insert text
+          -- based on a pattern/function/lambda-evaluation.
+          -- It's basically a shortcut for simple functionNodes:
+          s("mat", {
+            i(1, { "sample_text" }),
+            t(": "),
+            m(1, "%d", "contains a number", "no number :("),
+          }),
+          -- The `then`-text defaults to the first capture group/the entire
+          -- match if there are none.
+          s("mat2", {
+            i(1, { "sample_text" }),
+            t(": "),
+            m(1, "[abc][abc][abc]"),
+          }),
+          -- It is even possible to apply gsubs' or other transformations
+          -- before matching.
+          s("mat3", {
+            i(1, { "sample_text" }),
+            t(": "),
+            m(
+              1,
+              l._1:gsub("[123]", ""):match("%d"),
+              "contains a number that isn't 1, 2 or 3!"
+            ),
+          }),
+          -- `match` also accepts a function in place of the condition, which in
+          -- turn accepts the usual functionNode-args.
+          -- The condition is considered true if the function returns any
+          -- non-nil/false-value.
+          -- If that value is a string, it is used as the `if`-text if no if is explicitly given.
+          s("mat4", {
+            i(1, { "sample_text" }),
+            t(": "),
+            m(1, function(args)
+              -- args is a table of multiline-strings (as usual).
+              return (#args[1][1] % 2 == 0 and args[1]) or nil
+            end),
+          }),
+          -- The nonempty-node inserts text depending on whether the arg-node is
+          -- empty.
+          s("nempty", {
+            i(1, "sample_text"),
+            n(1, "i(1) is not empty!"),
+          }),
+          -- dynamic lambdas work exactly like regular lambdas, except that they
+          -- don't return a textNode, but a dynamicNode containing one insertNode.
+          -- This makes it easier to dynamically set preset-text for insertNodes.
+          s("dl1", {
+            i(1, "sample_text"),
+            t({ ":", "" }),
+            dl(2, l._1, 1),
+          }),
+          -- Obviously, it's also possible to apply transformations, just like lambdas.
+          s("dl2", {
+            i(1, "sample_text"),
+            i(2, "sample_text_2"),
+            t({ "", "" }),
+            dl(3, l._1:gsub("\n", " linebreak ") .. l._2, { 1, 2 }),
+          }),
+        }, {
+          key = "all",
+        })
+
+
+
+        -- {{{ lua snippets
+        ls.add_snippets("lua", {
+          -- Very long example for a java class.
+          s("new-module", {
+            t({ "local M = {}", "", "", }),
+            i(1),
+            t({ "", "", "return M" }),
+          }),
+
+          s("lowercase-global", {
+            t({ "---@diagnostic disable-next-line: lowercase-global", }),
+          }),
+
+          s("unused-local", {
+            t({ "---@diagnostic disable-next-line: unused-local", }),
+          }),
+
+        }, {
+          key = "lua",
+        })
+        -- }}} lua snippets
+
+
+        ls.add_snippets("java", {
+          -- Very long example for a java class.
+          s("fn", {
+            d(6, jdocsnip, { 2, 4, 5 }),
+            t({ "", "" }),
+            c(1, {
+              t("public "),
+              t("private "),
+            }),
+            c(2, {
+              t("void"),
+              t("String"),
+              t("char"),
+              t("int"),
+              t("double"),
+              t("boolean"),
+              i(nil, ""),
+            }),
+            t(" "),
+            i(3, "myFunc"),
+            t("("),
+            i(4),
+            t(")"),
+            c(5, {
+              t(""),
+              sn(nil, {
+                t({ "", " throws " }),
+                i(1),
+              }),
+            }),
+            t({ " {", "\t" }),
+            i(0),
+            t({ "", "}" }),
+          }),
+        }, {
+          key = "java",
+        })
+
+        ls.add_snippets("tex", {
+          -- rec_ls is self-referencing. That makes this snippet 'infinite' eg. have as many
+          -- \item as necessary by utilizing a choiceNode.
+          s("ls", {
+            t({ "\\begin{itemize}", "\t\\item " }),
+            i(1),
+            d(2, rec_ls, {}),
+            t({ "", "\\end{itemize}" }),
+          }),
+        }, {
+          key = "tex",
+        })
+
+        -- set type to "autosnippets" for adding autotriggered snippets.
+        ls.add_snippets("all", {
+          s("autotrigger", {
+            t("autosnippet"),
+          }),
+        }, {
+          type = "autosnippets",
+          key = "all_auto",
+        })
+
+        -- in a lua file: search lua-, then c-, then all-snippets.
+        ls.filetype_extend("lua", { "c" })
+        -- in a cpp file: search c-snippets, then all-snippets only (no cpp-snippets!!).
+        ls.filetype_set("cpp", { "c" })
+
+        -- Beside defining your own snippets you can also load snippets from "vscode-like" packages
+        -- that expose snippets in json files, for example <https://github.com/rafamadriz/friendly-snippets>.
+
+        require("luasnip.loaders.from_vscode").load({ include = { "python" } }) -- Load only python snippets
+
+        -- The directories will have to be structured like eg. <https://github.com/rafamadriz/friendly-snippets> (include
+        -- a similar `package.json`)
+        require("luasnip.loaders.from_vscode").load({ paths = { "./my-snippets" } }) -- Load snippets from my-snippets folder
+
+        -- You can also use lazy loading so snippets are loaded on-demand, not all at once (may interfere with lazy-loading luasnip itself).
+        require("luasnip.loaders.from_vscode").lazy_load() -- You can pass { paths = "./my-snippets/"} as well
+
+        -- You can also use snippets in snipmate format, for example <https://github.com/honza/vim-snippets>.
+        -- The usage is similar to vscode.
+
+        -- One peculiarity of honza/vim-snippets is that the file containing global
+        -- snippets is _.snippets, so we need to tell luasnip that the filetype "_"
+        -- contains global snippets:
+        ls.filetype_extend("all", { "_" })
+
+        require("luasnip.loaders.from_snipmate").load({ include = { "c" } }) -- Load only snippets for c.
+
+        -- Load snippets from my-snippets folder
+        -- The "." refers to the directory where of your `$MYVIMRC` (you can print it
+        -- out with `:lua print(vim.env.MYVIMRC)`.
+        -- NOTE: It's not always set! It isn't set for example if you call neovim with
+        -- the `-u` argument like this: `nvim -u yeet.txt`.
+        require("luasnip.loaders.from_snipmate").load({ path = { "./my-snippets" } })
+        -- If path is not specified, luasnip will look for the `snippets` directory in rtp (for custom-snippet probably
+        -- `~/.config/nvim/snippets`).
+
+        require("luasnip.loaders.from_snipmate").lazy_load() -- Lazy loading
+
+        -- see DOC.md/LUA SNIPPETS LOADER for some details.
+        require("luasnip.loaders.from_lua").load({ include = { "c" } })
+        require("luasnip.loaders.from_lua").lazy_load({ include = { "all", "cpp" } })
       end,
       keys = {
-        { '<Space>yy', '<CMD>Telescope luasnip<CR>', desc = 'Snippets' }
+        { '<Space>su', '<CMD>Telescope ultisnips<CR>', desc = 'Ultisnip Snippets' },
+        { '<Space>ss', '<CMD>Telescope luasnip<CR>',   desc = 'Luasnip Snippets' }
       },
     },
     -- }}} Luasnip
@@ -1342,7 +2637,7 @@ require("lazy").setup({
     -- https://github.com/lewis6991/gitsigns.nvim
     {
       'lewis6991/gitsigns.nvim',
-      lazy = true,
+      lazy = false,
       config = function()
         require('gitsigns').setup {
           signs                        = {
@@ -1518,8 +2813,8 @@ require("lazy").setup({
             cmd = { 'R', '--slave', '-e', "options(lintr = list(trailing_blank_lines_linter = NULL, snake_case_linter = NULL)); languageserver::run()" },
             filetypes = { 'R', 'r', 'rmd', 'Rmd' },
           },
-          cmakelang = {},
-          cmake_language_server = {},
+          -- cmakelang = {},
+          -- cmake_language_server = {},
           cmake = {},
           clangd = {},
           ts_ls = {},
@@ -1668,7 +2963,7 @@ require("lazy").setup({
       },
       lazy = false,
       keys = {
-        -- { '<Space>ff', '<CMD>Neotree toggle<CR>', desc = 'File Tree' },
+        { '<Space>ff', '<CMD>Neotree toggle<CR>', desc = 'File Tree' },
       },
     },
     -- }}} Neotree
@@ -1977,11 +3272,13 @@ require("lazy").setup({
       'nvim-telescope/telescope.nvim',
       lazy = false,
       dependencies = {
-
+        'nvim-lua/popup.nvim',
         -- 'tomasky/bookmarks.nvim',
         'nvim-tree/nvim-web-devicons',
         'nvim-lua/plenary.nvim',
         'fhill2/telescope-ultisnips.nvim',
+        'nvim-telescope/telescope-media-files.nvim',
+
         {
           "benfowler/telescope-luasnip.nvim",
           dependencies = {
@@ -2097,6 +3394,7 @@ require("lazy").setup({
         pcall(require('telescope').load_extension, 'ultisnips')
         pcall(require('telescope').load_extension, 'project')
         pcall(require('telescope').load_extension, 'luasnip')
+        pcall(require('telescope').load_extension, 'media_files')
         -- pcall(require('telescope').load_extension, 'bookmarks')
       end,
       keys = {
@@ -2180,9 +3478,9 @@ require("lazy").setup({
       config = function()
         vim.g.slime_target = "neovim"
       end,
-      keys = {
-        { '<A-return>', '<CMD>SlimeSend<CR>', desc = 'Send to REPL', mode = { "v", "n" } }
-      },
+      -- keys = {
+      --   { '<A-return>', '<CMD>SlimeSend<CR>', desc = 'Send to REPL', mode = { "v", "n" } }
+      -- },
     },
 
     -- }}} nvim-slime
@@ -2359,9 +3657,10 @@ vim.api.nvim_create_autocmd("BufEnter", {
 vim.api.nvim_create_autocmd("BufEnter", {
   pattern = "*.lua",
   callback = function()
-    mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
-    mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
-    mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
+    mymap('n', '<A-S-return>', '<CMD>source %<CR>')
+    -- mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
+    -- mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
+    -- mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
     -- print("Hello lua filetype")
   end
 })
@@ -2410,8 +3709,8 @@ vim.api.nvim_create_autocmd("BufEnter", {
   pattern = { "*.r", "*.R" },
   callback = function()
     mymap('n', '<A-S-return>', '<CMD>silent make<CR>')
-    mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
-    mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
+    -- mymap('n', '<A-return>', '<CMD>SlimeSend<CR>')
+    -- mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
   end
 })
 
@@ -2419,38 +3718,33 @@ vim.api.nvim_create_autocmd("BufEnter", {
 
 -- }}} Filetype configs
 
+-- {{{ Misc inbox
+
 ---@diagnostic disable-next-line: unused-local
-local playround = require 'playground'
+-- local playround = require 'playground'
 
-mymap('n', '<A-return>', '<CMD>SlimeSendCurrentLine<CR>')
-mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
 
+wrapped_slime = function()
+  vim.cmd("sleep 10m")      -- Adjust the sleep as necessary
+  vim.cmd("'<,'>SlimeSend") -- Send to Slime
+end
+
+---@diagnostic disable-next-line: redundant-parameter
+mymap('v', '<A-return>', ':lua wrapped_slime()<CR>', { noremap = true, silent = true })
 mymap('n', '<A-return>', '<CMD>SlimeSendCurrentLine<CR>')
-mymap('v', '<A-return>', '<CMD>SlimeSend<CR>')
 
 vim.api.nvim_set_keymap('n', 'gl', '<Plug>(Luadev-Run)', { noremap = false, silent = true })
 
--- TODO: make format key binding instead of autocmd on save
--- vim.api.nvim_create_autocmd("BufWritePre", {
---   pattern = "*",
---   callback = function() vim.lsp.buf.format({ async = true }) end,
--- })
 
+vim.api.nvim_create_user_command('Format',
+  function() vim.lsp.buf.format({ async = true }) end, { nargs = 0 })
 
+mymap('n', '<Space>F', '<CMD>Format<CR>')
 
+-- }}} Misc inbox
 
--- ---@diagnostic disable-next-line: lowercase-global
--- function hello_world()
---   print("Hello, World!")
--- end
---
--- ---@diagnostic disable-next-line: lowercase-global
--- function read_file(file_path)
---   local file = io.open(file_path, "r") -- Open the file in read mode
---   if not file then
---     return nil, "Could not open file"
---   end
---   local content = file:read("*a") -- Read the entire file content
---   file:close()                    -- Close the file
---   return content
--- end
+-- {{{ Post plugin option fixes
+vim.opt.number = false
+-- }}} Post plugin option fixes
+
+-- End init.lua
