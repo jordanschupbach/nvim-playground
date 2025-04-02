@@ -1,3 +1,5 @@
+* TODO add space xf to format
+* TODO add binding for AsyncRun make
 * TODO Learn (in depth) how to use orgmode
 ** TODO Learn org captures in nvim
 ** TODO Learn org features in nvim
@@ -8,8 +10,4 @@
 * DONE add toggle TODO list keybinding
 * DONE buf info keybind
 * DONE Add code companion
-  :LOGBOOK:
-  CLOCK: [2025-03-02 Sun 12:14]--[2025-03-02 Sun 13:19] => 1:05
-  :END:
-
 * DONE Add in org plugins like org-modern

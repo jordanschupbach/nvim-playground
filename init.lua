@@ -1088,8 +1088,15 @@ require("lazy").setup({
   spec = {
 
 
-    -- https://github.com/thesimonho/kanagawa-paper.nvim
-    { "thesimonho/kanagawa-paper.nvim" },
+    { -- https://github.com/johmsalas/text-case.nvim
+      "johmsalas/text-case.nvim",
+      config = function()
+        require('textcase').setup {}
+      end
+    },
+
+    { -- https://github.com/thesimonho/kanagawa-paper.nvim
+      "thesimonho/kanagawa-paper.nvim" },
 
     { "savq/melange-nvim" },
     -- { "EdenEast/nightfox.nvim" },
@@ -1227,8 +1234,73 @@ require("lazy").setup({
 
     {
       "folke/todo-comments.nvim",
+      lazy = false,
       dependencies = { "nvim-lua/plenary.nvim" },
-      opts = {},
+      opts = {
+        signs = true,      -- show icons in the signs column
+        sign_priority = 8, -- sign priority
+        -- keywords recognized as todo comments
+        keywords = {
+          FIX = {
+            icon = " ", -- icon used for the sign, and in search results
+            color = "error", -- can be a hex color, or a named color (see below)
+            alt = { "FIXME", "BUG", "FIXIT", "ISSUE" }, -- a set of other keywords that all map to this FIX keywords
+            -- signs = false, -- configure signs for some keywords individually
+          },
+          TODO = { icon = " ", color = "info" },
+          HACK = { icon = " ", color = "warning" },
+          WARN = { icon = " ", color = "warning", alt = { "WARNING", "XXX" } },
+          PERF = { icon = " ", alt = { "OPTIM", "PERFORMANCE", "OPTIMIZE" } },
+          NOTE = { icon = " ", color = "hint", alt = { "INFO" } },
+          TEST = { icon = "⏲ ", color = "test", alt = { "TESTING", "PASSED", "FAILED" } },
+        },
+        gui_style = {
+          fg = "NONE",         -- The gui style to use for the fg highlight group.
+          bg = "BOLD",         -- The gui style to use for the bg highlight group.
+        },
+        merge_keywords = true, -- when true, custom keywords will be merged with the defaults
+        -- highlighting of the line containing the todo comment
+        -- * before: highlights before the keyword (typically comment characters)
+        -- * keyword: highlights of the keyword
+        -- * after: highlights after the keyword (todo text)
+        highlight = {
+          multiline = true,                -- enable multine todo comments
+          multiline_pattern = "^.",        -- lua pattern to match the next multiline from the start of the matched keyword
+          multiline_context = 10,          -- extra lines that will be re-evaluated when changing a line
+          before = "",                     -- "fg" or "bg" or empty
+          keyword = "wide",                -- "fg", "bg", "wide", "wide_bg", "wide_fg" or empty. (wide and wide_bg is the same as bg, but will also highlight surrounding characters, wide_fg acts accordingly but with fg)
+          after = "fg",                    -- "fg" or "bg" or empty
+          pattern = [[.*<(KEYWORDS)\s*:]], -- pattern or table of patterns, used for highlighting (vim regex)
+          comments_only = true,            -- uses treesitter to match keywords in comments only
+          max_line_len = 400,              -- ignore lines longer than this
+          exclude = {},                    -- list of file types to exclude highlighting
+        },
+        -- list of named colors where we try to extract the guifg from the
+        -- list of highlight groups or use the hex color if hl not found as a fallback
+        colors = {
+          error = { "DiagnosticError", "ErrorMsg", "#DC2626" },
+          warning = { "DiagnosticWarn", "WarningMsg", "#FBBF24" },
+          info = { "DiagnosticInfo", "#2563EB" },
+          hint = { "DiagnosticHint", "#10B981" },
+          default = { "Identifier", "#7C3AED" },
+          test = { "Identifier", "#FF00FF" }
+        },
+        search = {
+          command = "rg",
+          args = {
+            "--color=never",
+            "--no-heading",
+            "--with-filename",
+            "--line-number",
+            "--column",
+          },
+          -- regex that will be used to match keywords.
+          -- don't replace the (KEYWORDS) placeholder
+          pattern = [[\b(KEYWORDS):]], -- ripgrep regex
+          -- pattern = [[\b(KEYWORDS)\b]], -- match without the extra colon. You'll likely get false positives
+        },
+      }
+      ,
       keys = {
         { "<Space>tT", "<CMD>TodoTelescope<CR>", desc = "Todos" },
       }
@@ -1917,7 +1989,7 @@ require("lazy").setup({
         -- If you're reading this file for the first time, best skip to around line 190
         -- where the actual snippet-definitions start.
 
-        -- Every unspecified option will be set to the default.
+        -- {{{ setup opts
         ls.setup({
           keep_roots = true,
           link_roots = true,
@@ -1952,9 +2024,13 @@ require("lazy").setup({
           -- `nvim-treesitter/nvim-treesitter`). This allows correctly resolving
           -- the current filetype in eg. a markdown-code block or `vim.cmd()`.
           ft_func = function()
-            return vim.split(vim.bo.filetype, ".", {plain = true})
+            return vim.split(vim.bo.filetype, ".", { plain = true })
           end,
         })
+        -- }}} setup opts
+
+        -- {{{ Helper methods
+
 
         -- args is a table, where 1 is the text in Placeholder 1, 2 the text in
         -- placeholder 2,...
@@ -2002,9 +2078,9 @@ require("lazy").setup({
 
           local insert = 2
           ---@diagnostic disable-next-line: unused-local
-          for indx, arg in ipairs(vim.split(args[2][1], ", ", {plain = true})) do
+          for indx, arg in ipairs(vim.split(args[2][1], ", ", { plain = true })) do
             -- get actual name parameter.
-            arg = vim.split(arg, " ", {plain = true})[2]
+            arg = vim.split(arg, " ", { plain = true })[2]
             if arg then
               local inode
               -- if there was some text in this parameter, use it as static_text for this new snippet.
@@ -2076,12 +2152,14 @@ require("lazy").setup({
 
         -- returns a snippet_node wrapped around an insertnode whose initial
         -- text value is set to the current date in the desired format.
-       ---@diagnostic disable-next-line: unused-local, redefined-local
+        ---@diagnostic disable-next-line: unused-local, redefined-local
         local date_input = function(args, snip, old_state, fmt)
-       ---@diagnostic disable-next-line: redefined-local
+          ---@diagnostic disable-next-line: redefined-local
           local fmt = fmt or "%y-%m-%d"
           return sn(nil, i(1, os.date(fmt)))
         end
+
+        -- }}} Helper methods
 
         -- snippets are added via ls.add_snippets(filetype, snippets[, opts]), where
         -- opts may specify the `type` of the snippets ("snippets" or "autosnippets",
@@ -2089,6 +2167,9 @@ require("lazy").setup({
         --
         -- opts can also specify a key. by passing an unique key to each add_snippets, it's possible to reload snippets by
         -- re-`:luafile`ing the file in which they are defined (eg. this one).
+
+        -- {{{ All snippets
+
         ls.add_snippets("all", {
           -- trigger is `fn`, second argument to snippet-constructor are the nodes to insert into the buffer on expansion.
           s("fn", {
@@ -2374,7 +2455,7 @@ require("lazy").setup({
           key = "all",
         })
 
-
+        -- }}} All snippets
 
         -- {{{ lua snippets
         ls.add_snippets("lua", {
@@ -2398,7 +2479,7 @@ require("lazy").setup({
         })
         -- }}} lua snippets
 
-
+        -- {{{ Java snippets
         ls.add_snippets("java", {
           -- Very long example for a java class.
           s("fn", {
@@ -2436,7 +2517,9 @@ require("lazy").setup({
         }, {
           key = "java",
         })
+        -- }}} Java snippets
 
+        -- {{{ tex snippets
         ls.add_snippets("tex", {
           -- rec_ls is self-referencing. That makes this snippet 'infinite' eg. have as many
           -- \item as necessary by utilizing a choiceNode.
@@ -2450,6 +2533,9 @@ require("lazy").setup({
           key = "tex",
         })
 
+        -- }}} tex snippets
+
+        -- {{{ autotrigger snippets?
         -- set type to "autosnippets" for adding autotriggered snippets.
         ls.add_snippets("all", {
           s("autotrigger", {
@@ -2459,53 +2545,30 @@ require("lazy").setup({
           type = "autosnippets",
           key = "all_auto",
         })
+        -- }}} autotrigger snippets?
 
+        -- {{{ load snippets
         -- in a lua file: search lua-, then c-, then all-snippets.
         ls.filetype_extend("lua", { "c" })
         -- in a cpp file: search c-snippets, then all-snippets only (no cpp-snippets!!).
         ls.filetype_set("cpp", { "c" })
-
-        -- Beside defining your own snippets you can also load snippets from "vscode-like" packages
-        -- that expose snippets in json files, for example <https://github.com/rafamadriz/friendly-snippets>.
-
-        require("luasnip.loaders.from_vscode").load({ include = { "python" } }) -- Load only python snippets
-
-        -- The directories will have to be structured like eg. <https://github.com/rafamadriz/friendly-snippets> (include
-        -- a similar `package.json`)
+        require("luasnip.loaders.from_vscode").load({ include = { "python" } })      -- Load only python snippets
         require("luasnip.loaders.from_vscode").load({ paths = { "./my-snippets" } }) -- Load snippets from my-snippets folder
-
-        -- You can also use lazy loading so snippets are loaded on-demand, not all at once (may interfere with lazy-loading luasnip itself).
-        require("luasnip.loaders.from_vscode").lazy_load() -- You can pass { paths = "./my-snippets/"} as well
-
-        -- You can also use snippets in snipmate format, for example <https://github.com/honza/vim-snippets>.
-        -- The usage is similar to vscode.
-
-        -- One peculiarity of honza/vim-snippets is that the file containing global
-        -- snippets is _.snippets, so we need to tell luasnip that the filetype "_"
-        -- contains global snippets:
+        require("luasnip.loaders.from_vscode").lazy_load()                           -- You can pass { paths = "./my-snippets/"} as well
         ls.filetype_extend("all", { "_" })
-
-        require("luasnip.loaders.from_snipmate").load({ include = { "c" } }) -- Load only snippets for c.
-
-        -- Load snippets from my-snippets folder
-        -- The "." refers to the directory where of your `$MYVIMRC` (you can print it
-        -- out with `:lua print(vim.env.MYVIMRC)`.
-        -- NOTE: It's not always set! It isn't set for example if you call neovim with
-        -- the `-u` argument like this: `nvim -u yeet.txt`.
+        require("luasnip.loaders.from_snipmate").load({ include = { "c" } })         -- Load only snippets for c.
         require("luasnip.loaders.from_snipmate").load({ path = { "./my-snippets" } })
-        -- If path is not specified, luasnip will look for the `snippets` directory in rtp (for custom-snippet probably
-        -- `~/.config/nvim/snippets`).
-
-        require("luasnip.loaders.from_snipmate").lazy_load() -- Lazy loading
-
-        -- see DOC.md/LUA SNIPPETS LOADER for some details.
+        require("luasnip.loaders.from_snipmate").lazy_load()                         -- Lazy loading
         require("luasnip.loaders.from_lua").load({ include = { "c" } })
         require("luasnip.loaders.from_lua").lazy_load({ include = { "all", "cpp" } })
+        -- }}} load snippets from other sources
       end,
+
       keys = {
         { '<Space>su', '<CMD>Telescope ultisnips<CR>', desc = 'Ultisnip Snippets' },
         { '<Space>ss', '<CMD>Telescope luasnip<CR>',   desc = 'Luasnip Snippets' }
       },
+
     },
     -- }}} Luasnip
 
@@ -3640,6 +3703,22 @@ vim.api.nvim_create_autocmd("BufEnter", {
 
 -- }}} C
 
+
+-- {{{ CPP
+
+vim.api.nvim_create_autocmd("BufEnter", {
+  pattern = "*.cpp",
+  callback = function()
+    mymap('n', '<A-S-return>', '<CMD>AsyncRun make<CR>')
+  end
+})
+
+-- }}} CPP
+
+
+
+
+
 -- {{{ lisp
 
 vim.api.nvim_create_autocmd("BufEnter", {
@@ -3740,6 +3819,7 @@ vim.api.nvim_create_user_command('Format',
   function() vim.lsp.buf.format({ async = true }) end, { nargs = 0 })
 
 mymap('n', '<Space>F', '<CMD>Format<CR>')
+mymap('n', '<Space>xf', '<CMD>Format<CR>')
 
 -- }}} Misc inbox
 
