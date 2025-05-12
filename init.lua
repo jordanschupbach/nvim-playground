@@ -1,4 +1,3 @@
--- local nvp = require 'nvp'
 
 -- {{{ Initial Options
 
@@ -1087,7 +1086,28 @@ local mycolors = {
 require("lazy").setup({
   spec = {
 
+    {
+      'stevearc/oil.nvim',
+      ---@module 'oil'
+      ---@type oil.SetupOpts
+      opts = {},
+      -- Optional dependencies
+      dependencies = { { "echasnovski/mini.icons", opts = {} } },
+      -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if you prefer nvim-web-devicons
+      -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.
+      lazy = false,
+    },
 
+
+
+    {
+      'manning390/wrd.nvim',
+      dependencies = {
+        'nvim-lua/plenary.nvim',
+        { 'nvim-telescope/telescope.nvim', tag = '0.1.6' }
+      },
+      opts = {},
+    },
     { -- https://github.com/johmsalas/text-case.nvim
       "johmsalas/text-case.nvim",
       config = function()
@@ -1095,14 +1115,35 @@ require("lazy").setup({
       end
     },
 
-    { -- https://github.com/thesimonho/kanagawa-paper.nvim
-      "thesimonho/kanagawa-paper.nvim" },
+    -- { "thesimonho/kanagawa-paper.nvim" },
 
-    { "savq/melange-nvim" },
+      -- {{{ Melange
+    -- { "savq/melange-nvim" },
     -- { "EdenEast/nightfox.nvim" },
+    -- }}} Melange
 
     {
+      "folke/tokyonight.nvim",
+      lazy = false,
+      priority = 1000,
+      -- opts = {},
+      config = function()
+        vim.cmd("colorscheme tokyonight-night")
+      end,
+    },
+
+    -- {
+    --   "xero/miasma.nvim",
+    --   lazy = false,
+    --   priority = 1000,
+    --   config = function()
+    --     vim.cmd("colorscheme miasma")
+    --   end,
+    -- },
+
       -- https://github.com/nvim-focus/focus.nvim
+      -- {{{ focus.nvim
+    {
       'nvim-focus/focus.nvim',
       config = function()
         require("focus").setup({
@@ -1137,7 +1178,7 @@ require("lazy").setup({
         })
       end,
     },
-
+      -- }}} focus.nvim
 
     -- {{{ plenary
     {
@@ -1148,7 +1189,6 @@ require("lazy").setup({
       end,
     },
     -- }}} plenary
-
 
 
     -- {{{ zen-mode
@@ -1178,45 +1218,45 @@ require("lazy").setup({
     -- }}} CodeCompanion
 
     -- {{{ Noice
-    {
-      "folke/noice.nvim",
-      event = "VeryLazy",
-      opts = {
-        command_palette = true,
-        lsp = {
-          progress = {
-            enabled = false,
-            -- add any options here
-          },
-        },
-        messages = {
-          -- If you enable messages, then the cmdline is enabled automatically.
-          -- This is a current Neovim limitation.
-          enabled = false,             -- enables the Noice messages UI
-          view = "notify",             -- default view for messages
-          view_error = "notify",       -- view for errors
-          view_warn = "notify",        -- view for warnings
-          view_history = "messages",   -- view for :messages
-          view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
-        },
-        -- :Noice errors
-        errors = {
-          -- options for the message history that you get with `:Noice`
-          view = "popup",
-          opts = { enter = true, format = "details" },
-          filter = { error = true },
-          filter_opts = { reverse = true },
-        },
-      },
-      dependencies = {
-        -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
-        "MunifTanjim/nui.nvim",
-        -- OPTIONAL:
-        --   `nvim-notify` is only needed, if you want to use the notification view.
-        --   If not available, we use `mini` as the fallback
-        "rcarriga/nvim-notify",
-      }
-    },
+    -- {
+    --   "folke/noice.nvim",
+    --   event = "VeryLazy",
+    --   opts = {
+    --     command_palette = true,
+    --     lsp = {
+    --       progress = {
+    --         enabled = false,
+    --         -- add any options here
+    --       },
+    --     },
+    --     messages = {
+    --       -- If you enable messages, then the cmdline is enabled automatically.
+    --       -- This is a current Neovim limitation.
+    --       enabled = false,             -- enables the Noice messages UI
+    --       view = "notify",             -- default view for messages
+    --       view_error = "notify",       -- view for errors
+    --       view_warn = "notify",        -- view for warnings
+    --       view_history = "messages",   -- view for :messages
+    --       view_search = "virtualtext", -- view for search count messages. Set to `false` to disable
+    --     },
+    --     -- :Noice errors
+    --     errors = {
+    --       -- options for the message history that you get with `:Noice`
+    --       view = "popup",
+    --       opts = { enter = true, format = "details" },
+    --       filter = { error = true },
+    --       filter_opts = { reverse = true },
+    --     },
+    --   },
+    --   dependencies = {
+    --     -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+    --     "MunifTanjim/nui.nvim",
+    --     -- OPTIONAL:
+    --     --   `nvim-notify` is only needed, if you want to use the notification view.
+    --     --   If not available, we use `mini` as the fallback
+    --     "rcarriga/nvim-notify",
+    --   }
+    -- },
     -- }}} Noice
     -- {{{ Luadev
     {
@@ -1500,7 +1540,8 @@ require("lazy").setup({
         local Tabline = {
           { TabPages },
           { Align },
-          { Task },
+          -- { Task },
+          { Align },
           { Align },
           { PlayButton },
           { Space },
@@ -1636,51 +1677,51 @@ require("lazy").setup({
     -- }}} Sidebar
 
     -- {{{ Nvim-ide
-    {
-      'ldelossa/nvim-ide',
-      lazy = false,
-      config = function()
-        -- local bufferlist      = require('ide.components.bufferlist')
-        local explorer        = require('ide.components.explorer')
-        local outline         = require('ide.components.outline')
-        -- local callhierarchy   = require('ide.components.callhierarchy')
-        local timeline        = require('ide.components.timeline')
-        local terminal        = require('ide.components.terminal')
-        local terminalbrowser = require('ide.components.terminal.terminalbrowser')
-        local changes         = require('ide.components.changes')
-        local commits         = require('ide.components.commits')
-        local branches        = require('ide.components.branches')
-        local bookmarks       = require('ide.components.bookmarks')
-        local opts            = {
-          components = {
-            global_keymaps = {},
-            Explorer = {
-              show_file_permissions = false,
-              -- keymaps = {
-              --     hide = "x",
-              -- }
-            }
-          },
-          panels = {
-            left = "explorer",
-            right = "info"
-          },
-          panel_groups = {
-            explorer = { explorer.Name, bookmarks.Name, outline.Name, terminalbrowser.Name },
-            terminal = { terminal.Name },
-            git = { changes.Name, commits.Name, timeline.Name, branches.Name },
-            info = { changes.Name, }
-          },
-          workspaces = {
-            auto_open = 'none',
-          },
-        }
-        require('ide').setup(opts)
-      end,
-      keys = {
-        { '<Space>ii', '<CMD>Workspace LeftPanelToggle<CR>', desc = "Left Sidebar (files)" },
-      },
-    },
+    -- {
+    --   'ldelossa/nvim-ide',
+    --   lazy = false,
+    --   config = function()
+    --     -- local bufferlist      = require('ide.components.bufferlist')
+    --     local explorer        = require('ide.components.explorer')
+    --     local outline         = require('ide.components.outline')
+    --     -- local callhierarchy   = require('ide.components.callhierarchy')
+    --     local timeline        = require('ide.components.timeline')
+    --     local terminal        = require('ide.components.terminal')
+    --     local terminalbrowser = require('ide.components.terminal.terminalbrowser')
+    --     local changes         = require('ide.components.changes')
+    --     local commits         = require('ide.components.commits')
+    --     local branches        = require('ide.components.branches')
+    --     local bookmarks       = require('ide.components.bookmarks')
+    --     local opts            = {
+    --       components = {
+    --         global_keymaps = {},
+    --         Explorer = {
+    --           show_file_permissions = false,
+    --           -- keymaps = {
+    --           --     hide = "x",
+    --           -- }
+    --         }
+    --       },
+    --       panels = {
+    --         left = "explorer",
+    --         right = "info"
+    --       },
+    --       panel_groups = {
+    --         explorer = { explorer.Name, bookmarks.Name, outline.Name, terminalbrowser.Name },
+    --         terminal = { terminal.Name },
+    --         git = { changes.Name, commits.Name, timeline.Name, branches.Name },
+    --         info = { changes.Name, }
+    --       },
+    --       workspaces = {
+    --         auto_open = 'none',
+    --       },
+    --     }
+    --     require('ide').setup(opts)
+    --   end,
+    --   keys = {
+    --     { '<Space>ii', '<CMD>Workspace LeftPanelToggle<CR>', desc = "Left Sidebar (files)" },
+    --   },
+    -- },
     -- }}} Nvim-ide
 
     -- {{{ My Dashboard
@@ -2972,14 +3013,14 @@ require("lazy").setup({
           automatic_installation = true,
           ensure_installed = vim.tbl_keys(ensured_servers),
         }
-        mason_lspconfig.setup_handlers {
-          function(server_name)
-            require('lspconfig')[server_name].setup {
-              capabilities = capabilities,
-              settings = servers[server_name],
-            }
-          end,
-        }
+        -- mason_lspconfig.setup_handlers {
+        --   function(server_name)
+        --     require('lspconfig')[server_name].setup {
+        --       capabilities = capabilities,
+        --       settings = servers[server_name],
+        --     }
+        --   end,
+        -- }
       end,
     },
     {
@@ -3013,8 +3054,19 @@ require("lazy").setup({
     },
     -- }}} NerdIcons
 
-    -- {{{ Neotree
 
+    -- https://github.com/nvim-tree/nvim-tree.lua
+    -- {{{ NvimTree
+    {
+      "nvim-tree/nvim-tree.lua",
+      opts = { },
+      keys = {
+        -- { '<Space>ff', '<CMD>NvimTreeToggle<CR>', desc = 'File Tree' },
+      },
+    },
+    -- }}} NvimTree
+
+    -- {{{ Neotree
     {
       "nvim-neo-tree/neo-tree.nvim",
       branch = "v3.x",
@@ -3341,7 +3393,7 @@ require("lazy").setup({
         'nvim-lua/plenary.nvim',
         'fhill2/telescope-ultisnips.nvim',
         'nvim-telescope/telescope-media-files.nvim',
-
+        'archie-judd/telescope-words.nvim',
         {
           "benfowler/telescope-luasnip.nvim",
           dependencies = {
@@ -3360,6 +3412,13 @@ require("lazy").setup({
         },
         'nvim-telescope/telescope-project.nvim',
         'nvim-telescope/telescope-symbols.nvim',
+      },
+      opts = {
+        extensions = {
+          thesaurus = {
+            provider = 'datamuse',
+          },
+        },
       },
       config = function()
         -- local utilities = require 'utilities'
@@ -3398,7 +3457,8 @@ require("lazy").setup({
           -- vim.cmd 'split'
           -- vim.cmd 'terminal'
           -- vim.cmd 'Neotree toggle'
-          vim.cmd 'Workspace LeftPanelToggle'
+          vim.cmd 'Neotree toggle'
+          -- vim.cmd 'Workspace LeftPanelToggle'
           vim.cmd 'wincmd l'
           vim.cmd('cd ' .. entry["value"])
           vim.cmd 'SidebarNvimToggle'
@@ -3410,6 +3470,9 @@ require("lazy").setup({
           end
           -- vim.cmd('cd ')
         end
+
+        local telescope = require("telescope")
+        local word_actions = require("telescope-words.actions")
 
         require('telescope').setup {
           defaults = {
@@ -3450,6 +3513,39 @@ require("lazy").setup({
                 on_project_selected(prompt_bufnr)
               end,
             },
+
+           -- This configuration only affects this extension.
+            telescope_words = {
+
+              -- Define custom mappings. Default mappings are {} (empty).
+              mappings = {
+                n = {
+                  ["<CR>"] = word_actions.replace_word_under_cursor,
+                },
+                i = {
+                  ["<CR>"] = word_actions.replace_word_under_cursor,
+                },
+
+              },
+
+              -- Default pointers define the lexical relations listed under each definition,
+              -- see Pointer Symbols below.
+              -- Default is as below ("antonyms", "similar to" and "also see").
+              pointer_symbols = { "!", "&", "^" },
+
+              -- The number of characters entered before fuzzy searching is used. Raise this
+              -- if results are slow. Default is 3.
+              fzy_char_threshold = 3,
+
+              -- Choose the layout strategy. Default is as below.
+              layout_strategy = "horizontal",
+
+              -- And your layout config. Default is as below.
+              layout_config = { height = 0.75, width = 0.75, preview_width = 0.65 },
+            },
+
+
+
           },
         }
         require 'telescope'.load_extension('make')
@@ -3458,6 +3554,7 @@ require("lazy").setup({
         pcall(require('telescope').load_extension, 'project')
         pcall(require('telescope').load_extension, 'luasnip')
         pcall(require('telescope').load_extension, 'media_files')
+        pcall(require('telescope').load_extension, 'thesaurus')
         -- pcall(require('telescope').load_extension, 'bookmarks')
       end,
       keys = {
@@ -3826,5 +3923,23 @@ mymap('n', '<Space>xf', '<CMD>Format<CR>')
 -- {{{ Post plugin option fixes
 vim.opt.number = false
 -- }}} Post plugin option fixes
+
+ -- {{{ Playground/inbox
+
+vim.api.nvim_create_autocmd("BufReadPost", {
+    pattern = "*",
+    callback = function()
+        -- Check if the first line is not empty
+        if vim.fn.getline(1) ~= '' then
+            -- Insert a blank line at the top and return to normal mode
+            vim.api.nvim_command('normal! ggO')
+            -- Switch back to normal mode (the command already does this)
+            -- Just ensure you won't be in insert mode
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), 'n', true)
+        end
+    end,
+})
+
+ -- }}} Playground/inbox
 
 -- End init.lua
